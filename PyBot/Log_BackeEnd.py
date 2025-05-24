@@ -15,7 +15,9 @@ class logging():
         load_dotenv();
         baseUrl = os.getenv("Auth_URL");
         #proxies = {'https':'http://'+userText+':'+pswText+'@proxy-xm:8080'}
+        print(f'AutBaseurl: {baseUrl}')
         endpoint = os.getenv("AUTH_ENDPOINT");
+        print(f'AutEndpoint: {endpoint}')
         url = baseUrl+endpoint;
         print(f'url: {url}')
 
