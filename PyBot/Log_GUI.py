@@ -14,6 +14,7 @@ label1 = Label(window, text= "Usuario:", padx = 10);
 label1.grid(row=0, column=0);
 
 userEntry = StringVar();
+userEntry.set("");
 entry = Entry(window, textvariable=userEntry);
 entry.grid(row=0, column=1, rowspan=1, columnspan=1, padx=10, pady=5);
 
@@ -21,6 +22,7 @@ label2 = Label(window, text= "Contraseña:", padx = 10);
 label2.grid(row=1, column=0);
 
 pswEntry = StringVar();
+pswEntry.set("");
 entry = Entry(window, show="*", textvariable=pswEntry);
 entry.grid(row=1, column=1,rowspan=1, columnspan=1, padx=10, pady=5);
 
