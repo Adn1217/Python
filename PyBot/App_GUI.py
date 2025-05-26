@@ -3,7 +3,6 @@ from Log_GUI import log_GUI
 from Consult_GUI import consult_GUI
 from Log_BackeEnd import logging
 
-
 class App():
     
     log = logging();

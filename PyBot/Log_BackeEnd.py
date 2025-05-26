@@ -3,6 +3,8 @@ import json;
 from requests.structures import CaseInsensitiveDict;
 from dotenv import load_dotenv;
 import os;
+from requests.exceptions import ConnectionError;
+from http.client import RemoteDisconnected;
 
 
 
@@ -33,20 +35,25 @@ class logging():
         headers["Content-Type"] = "application/json"
         payload = '{"validacion":1,"usuario":"'+userText+'","contrasena":"'+pswText+'"}'
 
-        
-        #r = requests.post(urlA, headers=headers, data=payload, proxies=proxies)
-        # response = requests.post(url, headers=headers, data=payload); ### PRODUCTIVO
-        response = requests.get(url); ### -------- PRUEBAS --------------
-        resp = response.json();
-        # print(f"Response code: {r.status_code}");
-        # print(f'Respuesta: {response}');
-        if (response.status_code == 200):
-            self.Token = json.loads(response.text);
-            print(f"Token: {self.Token['token']}");
-        else:
-            self.Token = {"error": resp};
-            print(f"Se ha presentado error {response.status_code}: {resp}");
-        return self.Token
+        try:
+            #r = requests.post(urlA, headers=headers, data=payload, proxies=proxies)
+            # response = requests.post(url, headers=headers, data=payload); ### PRODUCTIVO
+            response = requests.get(url); ### -------- PRUEBAS --------------
+            resp = response.json();
+            # print(f"Response code: {r.status_code}");
+            # print(f'Respuesta: {response}');
+            if (response.status_code == 200):
+                self.Token = json.loads(response.text);
+                print(f"Token: {self.Token['token']}");
+            else:
+                self.Token = {"error": resp};
+                print(f"Se ha presentado error {response.status_code}: {resp}");
+            return self.Token
+        except(ConnectionError, RemoteDisconnected) as err:
+            print("Se ha presentado Error: ", err);
+            self.Token = {"error": err}
+            return self.Token
+
 
     def getData(self, date):
         Token = self.Token;
