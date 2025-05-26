@@ -14,8 +14,8 @@ class App():
         # self.geometry("400x200");
         # self.title("Asistente de validación de Información Operativa AVIO")
         self.loginGUI(self.log, self.updateIsGranted, isGranted);
-        print('¿User granted?: ', isGranted);
-        print('Token :', self.log.showToken() )
+        # print('¿User granted?: ', isGranted);
+        # print('Token :', self.log.showToken() )
     
     def loginGUI(self, log, updateIsGranted, isGranted):
         log_GUI(log, updateIsGranted, isGranted);
@@ -25,7 +25,7 @@ class App():
     
     def whenIsGrantedIsChanged(self, updateIsGranted, isGranted):
         if(isGranted):
-            print('User Granted!');
+            # print('User Granted!');
             consult_GUI(self.log, updateIsGranted, isGranted);
 
     def __setattr__(self, key, value):

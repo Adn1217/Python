@@ -3,8 +3,8 @@ from tkinter import *
 class log_GUI():
 
     def tryLogin(self, window, log, updateIsGranted, userEntry, pswEntry, infoText):
-        #textInfo = log.logIn(userEntry, pswEntry);
-        textInfo ='';
+        textInfo = log.logIn(userEntry, pswEntry);
+        # textInfo ='';
         if(textInfo == ""):
             window.destroy();
             updateIsGranted(True);
