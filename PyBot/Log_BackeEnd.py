@@ -10,7 +10,10 @@ class logging():
     Token = None;
 
     def __init__(self):
-        print("Instance Created")
+        print("Backend instance Created")
+
+    def showToken(self):
+        return self.Token;
 
     def getToken(self, userText, pswText):
         load_dotenv();
@@ -34,12 +37,12 @@ class logging():
         print(f"R: {r.status_code}");
         # print(f'Respuesta: {response}');
         if (r.status_code == 200):
-            Token = json.loads(r.text);
-            print(f"Token: {Token['token']}");
+            self.Token = json.loads(r.text);
+            print(f"Token: {self.Token['token']}");
         else:
-            Token = {"error": response};
+            self.Token = {"error": response};
             print(f"Se ha presentado error {r.status_code}: {response}");
-        return Token
+        return self.Token
 
     def getData(self, Token, date):
         load_dotenv();
