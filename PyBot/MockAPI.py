@@ -10,13 +10,13 @@ class MockAPIHandler(BaseHTTPRequestHandler):
         path = parsed_url.path
         query_params = parse_qs(parsed_url.query)
         load_dotenv();
-        endpoint = '/'+os.getenv("ACTIONS_ENDPOINT");
+        actionsEndpoint = '/'+os.getenv("ACTIONS_ENDPOINT");
+        authEndpoint = '/'+os.getenv("AUTH_ENDPOINT");
+        scriptDir = os.path.dirname(__file__);
 
-        if path == endpoint:
-
-            scriptDir = os.path.dirname(__file__);
-            sampleDataDir = 'sampleData.json';
-            sampleDataFilePath = os.path.join(scriptDir,sampleDataDir);
+        if path == actionsEndpoint:
+            sampleDataFileName = 'sampleData.json';
+            sampleDataFilePath = os.path.join(scriptDir,sampleDataFileName);
             # with open(r'GUI\PyBot\sampleData.json', 'r') as f:
             with open(sampleDataFilePath, 'r') as f:
                 data = json.load(f)
@@ -42,6 +42,18 @@ class MockAPIHandler(BaseHTTPRequestHandler):
             #     self.send_header('Content-type', 'application/json')
             #     self.end_headers()
             #     self.wfile.write(json.dumps(data['users']).encode('utf-8'))
+        elif path == authEndpoint:
+            sampleTokenFileName = 'sampleToken.json';
+            sampleTokenFilePath = os.path.join(scriptDir,sampleTokenFileName);
+            # with open(r'GUI\PyBot\sampleData.json', 'r') as f:
+            with open(sampleTokenFilePath, 'r') as f:
+                data = json.load(f)
+                if(data):
+                    self.send_response(200)
+                    self.send_header('Content-type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps(data).encode('utf-8'))
+
         elif path.startswith('/posts'):
             with open('data.json', 'r') as f:
                 data = json.load(f)

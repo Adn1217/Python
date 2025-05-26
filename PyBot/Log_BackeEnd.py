@@ -3,18 +3,26 @@ import json;
 from requests.structures import CaseInsensitiveDict;
 from dotenv import load_dotenv;
 import os;
+from requests.exceptions import ConnectionError;
+from http.client import RemoteDisconnected;
 
 
 
 class logging():
-    Token = None;
 
+    
     def __init__(self):
-        print("Instance Created")
+        self.port = 8000;
+        self.Token = {};
+        print("Backend instance Created")
+
+    def showToken(self):
+        return self.Token;
 
     def getToken(self, userText, pswText):
         load_dotenv();
-        baseUrl = os.getenv("Auth_URL");
+        # baseUrl = os.getenv("Auth_URL"); ### PRODUCTIVO
+        baseUrl = f"http://localhost:{self.port}/"; ### -------- PRUEBAS --------------
         #proxies = {'https':'http://'+userText+':'+pswText+'@proxy-xm:8080'}
         endpoint = os.getenv("AUTH_ENDPOINT");
         url = baseUrl+endpoint;
@@ -27,56 +35,72 @@ class logging():
         headers["Content-Type"] = "application/json"
         payload = '{"validacion":1,"usuario":"'+userText+'","contrasena":"'+pswText+'"}'
 
-        
-        #r = requests.post(urlA, headers=headers, data=payload, proxies=proxies)
-        r = requests.post(url, headers=headers, data=payload);
-        response = r.json();
-        print(f"R: {r.status_code}");
-        # print(f'Respuesta: {response}');
-        if (r.status_code == 200):
-            Token = json.loads(r.text);
-            print(f"Token: {Token['token']}");
-        else:
-            Token = {"error": response};
-            print(f"Se ha presentado error {r.status_code}: {response}");
-        return Token
+        try:
+            #r = requests.post(urlA, headers=headers, data=payload, proxies=proxies)
+            # response = requests.post(url, headers=headers, data=payload); ### PRODUCTIVO
+            response = requests.get(url); ### -------- PRUEBAS --------------
+            resp = response.json();
+            # print(f"Response code: {r.status_code}");
+            # print(f'Respuesta: {response}');
+            if (response.status_code == 200):
+                self.Token = json.loads(response.text);
+                print(f"Token: {self.Token['token']}");
+            else:
+                self.Token = {"error": resp};
+                print(f"Se ha presentado error {response.status_code}: {resp}");
+            return self.Token
+        except(ConnectionError, RemoteDisconnected) as err:
+            print("Se ha presentado Error: ", err);
+            self.Token = {"error": err}
+            return self.Token
 
-    def getData(self, Token, date):
+
+    def getData(self, date):
+        Token = self.Token;
+        print('Token usado: ', Token);
         load_dotenv();
-        #baseUrl = os.getenv("MANEUVER_URL");
-        port = 8000;
-        baseUrl = f"http://localhost:{port}/";
+        #baseUrl = os.getenv("MANEUVER_URL"); ### PRODUCTIVO
+        baseUrl = f"http://localhost:{self.port}/"; ### -------- PRUEBAS --------------
         #proxies = {'https':'http://'+userText+':'+pswText+'@proxy-xm:8080'}
         endpoint = os.getenv("ACTIONS_ENDPOINT");
         url = baseUrl+endpoint;
         print(f'url: {url}')
         headers = CaseInsensitiveDict();
         headers["accept"] = "text/plain"
-        headers = {'Authorization': 'Bearer ' + Token['token']}
         headers["Content-Type"] = "application/json"
-        baseUrl = os.getenv("MANEUVER_URL");
-        endpoint = os.getenv("ACTION_ENDPOINT");
-        #dFec = dt.datetime.strptime(self.ui.entFecha.text(), "%Y-%m-%d")
-        #dCsl = dFec.strftime('%Y-%m-%d')
-        JSONpayload = {
-            "dateFrom": "2025-05-23T00:00:00.000Z",
-            "dateTo": "2025-05-23T00:00:00.000Z",
-            "statusIds": [],
-            "systems": [],
-            "elementIds": [],
-            "elementCompanyNames": [],
-            "elementTypeIds": [],
-            "actionTypeIds": [],
-            "originPanelIds": [],
-            "sourceCND": "true",
-            "sourceAgents": "true",
-            "limitTo": 10,
-            "showCneZniElementDetail":"true" 
-        } 
-        payload = json.dumps(JSONpayload);
-        # r = requests.post(url, headers=headers, data=payload);
-        r = requests.get(url);
-        print(f'GetData response: {r.json()}');
+        if('token' in Token.keys()):
+            headers = {'Authorization': 'Bearer ' + Token['token']}
+            baseUrl = os.getenv("MANEUVER_URL");
+            endpoint = os.getenv("ACTION_ENDPOINT");
+            #dFec = dt.datetime.strptime(self.ui.entFecha.text(), "%Y-%m-%d")
+            #dCsl = dFec.strftime('%Y-%m-%d')
+            JSONpayload = {
+                "dateFrom": "2025-05-23T00:00:00.000Z",
+                "dateTo": "2025-05-23T00:00:00.000Z",
+                "statusIds": [],
+                "systems": [],
+                "elementIds": [],
+                "elementCompanyNames": [],
+                "elementTypeIds": [],
+                "actionTypeIds": [],
+                "originPanelIds": [],
+                "sourceCND": "true",
+                "sourceAgents": "true",
+                "limitTo": 10,
+                "showCneZniElementDetail":"true" 
+            } 
+            payload = json.dumps(JSONpayload);
+            # response = requests.post(url, headers=headers, data=payload); ### PRODUCTIVO
+            response = requests.get(url); ### -------- PRUEBAS --------------
+            resp = response.json();
+            # print("Atributos: ", resp[0].keys());
+            # Atributos disponibles: ['id', 'actionTypeId', 'actionType', 'flowId', 'flow', 'flowConsecutive', 'scheduledStartDate', 'elementId', 'elementTypeId', 'elementName', 'elementCompanyName', 'elementCompanyShortName', 'instructionTime', 'occurrenceTime', 'confirmationTime', 'causeStatusId', 'causeStatus', 'consignmentId', 'causeChangeAvailabilityId', 'causeChangeAvailability', 'newAvailability', 'elementCausingId', 'causeSuspendedExecutionId', 'causeSuspendedExecution', 'fileDocumentNumber', 'associatedActionId', 'causeOperationalId', 'causeOperational', 'controlVQId', 'controlVQ', 'teleprotectionId', 'teleprotection', 'finalElement', 'percentage', 'instructionTimeChecked', 'occurrenceTimeChecked', 'confirmationTimeChecked', 'order', 'parentTimeActionId', 'parentTypeTimeAssociatedId', 'parentTypeTimeAssociated', 'typeTimeAssociatedId', 'typeTimeAssociated', 'withPriorAuthorization', 'isVoltageControl', 'hidden', 'description', 'verificationNote', 'statusTypeId', 'statusType', 'locked', 'lockedByActionId', 'system', 'originPanelId', 'originPanel', 'causeOrigin', 'causeDetailCno', 'additionalFieldsValue', 'dashboardOrderingDate', 'espId', 'espName', 'espElementId', 'creationTime', 'filterActionOrderingDate', 'unavailableActionId', 'subSystemUnavailableAction', 'cneZone', 'fuel', 'fuelName', 'fuelCEN', 'plantCEN', 'qualityScheme', 'notification', 'reverseNotificationGenerated', 'source', 'disableAvailabilityField', 'dna', 'userValidator', 'configurationId', 'configurationDesc', 'thermalStateId', 'descriptionAdditional']
+            # Atributos de interés: ['id', 'actionTypeId', 'actionType', 'flowId', 'flow', 'flowConsecutive', 'scheduledStartDate', 'elementId', 'elementName', 'elementCompanyShortName', 'instructionTime', 'occurrenceTime', 'confirmationTime', 'causeStatus', 'consignmentId', 'causeChangeAvailability', 'newAvailability', 'elementCausingId', 'causeOperational', 'percentage', 'order', 'withPriorAuthorization', 'isVoltageControl', 'description', 'verificationNote', 'statusType', 'system', 'originPanel', 'causeOrigin', 'causeDetailCno', 'additionalFieldsValue', 'espName', 'espElementId', 'creationTime', 'unavailableActionId', 'subSystemUnavailableAction', 'cneZone', 'fuel', 'fuelName', 'fuelCEN', 'plantCEN', 'qualityScheme', 'source','dna', 'userValidator', 'configurationDesc', 'thermalStateId', 'descriptionAdditional']
+        else:
+            # resp = json.dumps({"error": "Autenticación expirada. Vuelva a autenticarse."}, indent=4, sort_keys=True, ensure_ascii=False);
+            resp = {"error": "Autenticación expirada. Vuelva a autenticarse."};
+        # print(f'GetData response: {resp}');
+        return resp;
         
     def logIn(self, userEntry, pswEntry):
         infoText ="";
