@@ -1,9 +1,10 @@
 
 from tkinter import *
-from Helpers import Table
+from Helpers import Table, dfTable
 from tkcalendar import Calendar
 import threading
 from datetime import date, datetime
+import pandas as pd
 
 class consult_GUI():
 
@@ -18,12 +19,13 @@ class consult_GUI():
         consultDate = selectedDate;
         threading.Thread(target=self.executeConsult, args=(log, consultDate, infoLabel, infoText), daemon=True).start()
         infoLabel.update_idletasks()
-        self.executeConsult(log, consultDate, infoLabel, infoText);
+        # self.executeConsult(log, consultDate, infoLabel, infoText);
         
     def executeConsult(self, log, consultDate, infoLabel, infoText):
         data = log.getData(consultDate);
         # data = []
-        infoText.set(f"Consulta del {consultDate}");
+        msg = f"Consulta del {consultDate}."
+        infoText.set(msg);
         print('Data: ', data);
         # window.destroy();
         if(isinstance(data, dict) and 'error' in data.keys()):
@@ -78,8 +80,11 @@ class consult_GUI():
         # window.attributes("-fullscreen", True)
         # window.state('zoomed');
         # window.iconbitmap('icono.ico');
-        # window.columnconfigure(0, weight=1); #Tamaño de la columna cero en relación con las demás.
-        # window.columnconfigure(1, weight=1); 
+
+        gridNumCols = 10
+        for i in range(gridNumCols):
+            window.columnconfigure(i, weight=1); #Tamaño de la columna i en relación con las demás.
+
         # window.rowconfigure(0, weight=1); #Tamaño de la fila cero en relación con las demás.
         today = date.today();
 
@@ -102,12 +107,16 @@ class consult_GUI():
         infoLabel = Label(window, textvariable=infoText, padx = 10, fg='red');
         infoLabel.grid(row=3, column=0, columnspan=3, sticky="W");
         
-        # frame = Frame(window);
-        # frame.grid(row=1, column=0, rowspan=1, padx=10, pady=10);
-        data = [(1,'Raj','Mumbai',19), (2,'Aaryan','Pune',18),(3,'Vaishnavi','Mumbai',20),(4,'Rachna','Mumbai',21),(5,'Shubham','Delhi',21)]
+        # data = [(1,'Raj','Mumbai',19), (2,'Aaryan','Pune',18),(3,'Vaishnavi','Mumbai',20),(4,'Rachna','Mumbai',21),(5,'Shubham','Delhi',21)]
         # print('Num columnas: ', len(data[0]));
-        # t = Table(frame, data),
-        # t.grid(row=2, column=0, rowspan=1, padx=10, pady=10);
+        frame = Frame(window);
+        frame.grid(row=4, column=0, columnspan=9, padx=10, pady=10, sticky='W');
+        # table = Table(frame, data, 20, 'blue', 'Arial', 16);
+        # table = Table(frame, data);
+        data = {'id': [1, 2, 3, 4, 5], 'nombre': ['Raj', 'Aaryan', 'Vaishnavi', 'Rachna', 'Shubham'], 'edad': [19, 18 ,20, 21, 21]}
+        df = pd.DataFrame(data)
+        table = dfTable(frame, df)
+        table.grid(row=4, column=0, rowspan=1, padx=10, pady=10);
 
 
         # text1 = Text(window, height=1, width= 20);
