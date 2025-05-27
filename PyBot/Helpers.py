@@ -20,17 +20,47 @@ class Table:
 
 
 
-def dfTable(parent, df):
+def dfTable(parent, dataList):
+
+    # print('dataList: ', dataList);
+    for item in dataList: #Eliminando diccionarios internos
+        # print('item: ', item);
+        for key in item.keys():
+            if isinstance(item[key], dict):
+               item[key] = item[key]["value"];
+    
+    df = pd.DataFrame(dataList);
+    # print('DataFrame: ', df);
     tree = ttk.Treeview(parent, show=["headings"]) ## "headings" to not show tree (additional column).
-    tree["columns"] = list(df.columns)
     # print('Columnas: ', list(df.columns));
+    
+    wantedCols  = ['id', 'actionType', 'elementId', 'elementName', 'elementCompanyShortName', 'instructionTime', 'occurrenceTime',
+                    'confirmationTime', 'causeStatus', 'consignmentId', 'causeChangeAvailability', 'newAvailability',
+                    'elementCausingId', 'causeOperational', 'percentage','withPriorAuthorization', 'description',
+                    'verificationNote', 'statusType', 'system', 'causeOrigin', 'causeDetailCno', 'additionalFieldsValue',
+                    'espName', 'espElementId', 'unavailableActionId', 'subSystemUnavailableAction', 'cneZone', 'fuel',
+                    'fuelName', 'fuelCEN', 'plantCEN', 'qualityScheme', 'source','dna', 'userValidator', 'configurationDesc',
+                    'thermalStateId', 'descriptionAdditional'];
+    colsExisting = [];
     for col in df.columns:
+        if col in wantedCols:
+            colsExisting.append(col);
+
+    # print('Columnas rec: ', list(colsExisting))
+    newDf = df[colsExisting].copy()
+    
+    tree["columns"] = list(newDf.columns)
+    for col in newDf.columns:
         tree.column(col, anchor="center")
         tree.heading(col, text=col)
-
     # tree.column('#0', width=10) ## Auto additional column to show tree. 
-    for _, row in df.iterrows():
-        # print('Fila: ', list(row));
+    for _, row in newDf.iterrows():
+        print('Fila: ', list(row));
+        # print('newDf.iterrows: ', newDf.iterrows());
         tree.insert("", END, values=list(row))
         # tree.pack(expand=True, fill="both")
+
+    # for cols in newDf.columns:
+    #     celda = newDf[cols];
+    #     print('Fila: ', )
     return tree;

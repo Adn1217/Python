@@ -22,16 +22,16 @@ class App():
     def updateIsGranted(self, isGranted):
         self.isGranted = isGranted;
     
-    def whenIsGrantedIsChanged(self, updateIsGranted, isGranted):
+    def whenIsGrantedIsChanged(self, isGranted):
         if(isGranted):
             # print('User Granted!');
-            consult_GUI(self.log, updateIsGranted, isGranted);
+            consult_GUI(self.log);
 
     def __setattr__(self, key, value):
         # self.key = value
         # print('keyChanged: ', key)
         if(key=='isGranted'):
-            self.whenIsGrantedIsChanged(self.updateIsGranted, value)  # <-- Your function
+            self.whenIsGrantedIsChanged(value)  # <-- Your function
         # super().__setattr__(key, value)
 
 if __name__ == '__main__':

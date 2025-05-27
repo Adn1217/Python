@@ -4,7 +4,6 @@ from Helpers import Table, dfTable
 from tkcalendar import Calendar
 import threading
 from datetime import date, datetime
-import pandas as pd
 
 class consult_GUI():
 
@@ -12,37 +11,55 @@ class consult_GUI():
         infoLabel.configure(fg=color);
         infoText.set(msg);
 
-    def tryGet(self, log, selectedDate, infoLabel, infoText):
-        msg = f"Realizando consulta para el {selectedDate}";
+    def tryGet(self, log, selectedDate, infoLabel, infoText, frame, table):
+        msg = f"Realizando consulta para el {selectedDate}...";
         self.updateInfoLabel(infoLabel, infoText, "black", msg);
-        print('Realizando consulta para el ', selectedDate);
+        print(f'Realizando consulta para el {selectedDate}...');
         consultDate = selectedDate;
-        threading.Thread(target=self.executeConsult, args=(log, consultDate, infoLabel, infoText), daemon=True).start()
-        infoLabel.update_idletasks()
+        threading.Thread(target=self.executeConsult, args=(log, consultDate, infoLabel, infoText, frame, table), daemon=True).start()
+        infoLabel.update_idletasks();
+        table.update_idletasks();
+        # print('Table list: ', self.dataList);
         # self.executeConsult(log, consultDate, infoLabel, infoText);
         
-    def executeConsult(self, log, consultDate, infoLabel, infoText):
+    def executeConsult(self, log, consultDate, infoLabel, infoText, frame, table):
         data = log.getData(consultDate);
         # data = []
         msg = f"Consulta del {consultDate}."
         infoText.set(msg);
-        print('Data: ', data);
-        # window.destroy();
+        # print('Data: ', data);
+        # print('First item of data: ', data[0]);
         if(isinstance(data, dict) and 'error' in data.keys()):
+            # self.dataList = {};
             error = data['error'];
             infoLabel.configure(fg='red');
             infoText.set(error);
             print(f'Info texto: {error}');
+        else:
+            # print('Numero de elementos: ', len(data));
+            self.updateTable(frame, table, data);
     
-    def cancelLogin(self, window, updateGranted):
-        updateGranted(False);
-        window.quit();
-        # self.deiconify();
-        # self.destroy();
+    def updateTable(self, parent, table, data):
+        table.destroy();
+        # print('Numero de elementos: ', len(data));
+        # self.dataList = {'id': [1, 2, 3, 4, 5], 'nombre': ['Raj', 'Aaryan', 'Vaishnavi', 'Rachna', 'Shubham'], 'edad': [19, 18 ,20, 21, 21]};
+        self.dataList = data;
+        # df = pd.DataFrame(self.dataList);    
+        table = dfTable(parent, self.dataList);
+        # print('Table list: ', self.dataList);
+        table.grid(row=4, column=0, rowspan=1, padx=10, pady=10);
+            
+
+    @property
+    def dataList(self):
+        return self._dataList
+
+    @dataList.setter
+    def dataList(self, value):
+        self._dataList = value
 
     def selectDateAndExit(self, window, calendar, dateText):
         selectedDateStr=calendar.get_date() #.strftime("%Y-%m-%D");
-        # date_string = "12/25/24"
         selectedDateObj = datetime.strptime(selectedDateStr, "%m/%d/%y")
         fselectedDate = selectedDateObj.strftime("%Y-%m-%d")
         print('Fecha seleccionada: ', fselectedDate)
@@ -65,13 +82,21 @@ class consult_GUI():
 
     
 
-    def __init__(self, log, updateIsGranted, userGranted):
+    def __init__(self, log):
         super().__init__();
         # self.withdraw(); #Hidden.
-        userGranted
-
-        '''Program must be between window and window.mainloop'''
-        # print('Granted recibido de App: ', userGranted)
+        # self._dataList = {'id': [], 'nombre': [], 'edad': []};
+        wantedCols  = ['id', 'actionType', 'elementId', 'elementName', 'elementCompanyShortName', 'instructionTime', 'occurrenceTime',
+                       'confirmationTime', 'causeStatus', 'consignmentId', 'causeChangeAvailability', 'newAvailability',
+                       'elementCausingId', 'causeOperational', 'percentage','withPriorAuthorization', 'description',
+                       'verificationNote', 'statusType', 'system', 'causeOrigin', 'causeDetailCno', 'additionalFieldsValue',
+                       'espName', 'espElementId', 'unavailableActionId', 'subSystemUnavailableAction', 'cneZone', 'fuel',
+                       'fuelName', 'fuelCEN', 'plantCEN', 'qualityScheme', 'source','dna', 'userValidator', 'configurationDesc',
+                       'thermalStateId', 'descriptionAdditional'];
+        dataListDict =  {}
+        for header in wantedCols:
+            dataListDict[header] = [];
+        self.dataList = [dataListDict];
         window = Tk();
         # frm = Frame(window, padx=5);
         # frm.grid();
@@ -98,9 +123,6 @@ class consult_GUI():
 
         selectDateButton = Button(window, text="Seleccionar", command=lambda: self.selectDateWindow(dateText, today));
         selectDateButton.grid(row=0, column=2, rowspan=1, padx=10, pady=10, sticky='W');
-
-        consultButton = Button(window, text="Consultar", command=lambda: self.tryGet(log, dateText.get(), infoLabel, infoText));
-        consultButton.grid(row=2, column=0, rowspan=1, padx=10, pady=10, sticky='W');
         
         infoText= StringVar();
         infoText.set("");
@@ -113,11 +135,13 @@ class consult_GUI():
         frame.grid(row=4, column=0, columnspan=9, padx=10, pady=10, sticky='W');
         # table = Table(frame, data, 20, 'blue', 'Arial', 16);
         # table = Table(frame, data);
-        data = {'id': [1, 2, 3, 4, 5], 'nombre': ['Raj', 'Aaryan', 'Vaishnavi', 'Rachna', 'Shubham'], 'edad': [19, 18 ,20, 21, 21]}
-        df = pd.DataFrame(data)
-        table = dfTable(frame, df)
+        # df = pd.DataFrame(self.dataList);
+        table = dfTable(frame, self.dataList);
         table.grid(row=4, column=0, rowspan=1, padx=10, pady=10);
-
+        
+        consultButton = Button(window, text="Consultar", command=lambda: self.tryGet(log, dateText.get(), infoLabel, infoText, frame, table));
+        consultButton.grid(row=2, column=0, rowspan=1, padx=10, pady=10, sticky='W');
+        
 
         # text1 = Text(window, height=1, width= 20);
         # text1.grid(row=2, column=0, rowspan=1, columnspan=1) 
