@@ -37,17 +37,19 @@ class consult_GUI():
             print(f'Info texto: {error}');
         else:
             # print('Numero de elementos: ', len(data));
-            self.updateTable(frame, table, data);
+            table.destroy();
+            self.updateTable(frame, data);
     
-    def updateTable(self, parent, table, data):
-        table.destroy();
+    def updateTable(self, parent, data):
         # print('Numero de elementos: ', len(data));
-        # self.dataList = {'id': [1, 2, 3, 4, 5], 'nombre': ['Raj', 'Aaryan', 'Vaishnavi', 'Rachna', 'Shubham'], 'edad': [19, 18 ,20, 21, 21]};
         self.dataList = data;
         # df = pd.DataFrame(self.dataList);    
-        table = dfTable(parent, self.dataList);
+        [table, xscrollBar, yscrollBar] = dfTable(parent, self.dataList);
         # print('Table list: ', self.dataList);
-        table.grid(row=4, column=0, rowspan=1, padx=10, pady=10);
+        table.grid(row=4, column=0, rowspan=1, padx=10, pady=10, sticky='EW');
+        xscrollBar.grid(row=5, column=0, rowspan=1, padx=10, pady=10, sticky='EW');
+        yscrollBar.grid(row=4, column=9, rowspan=1, padx=10, pady=10, sticky='NS');
+        return table;
             
 
     @property
@@ -129,15 +131,19 @@ class consult_GUI():
         infoLabel = Label(window, textvariable=infoText, padx = 10, fg='red');
         infoLabel.grid(row=3, column=0, columnspan=3, sticky="W");
         
-        # data = [(1,'Raj','Mumbai',19), (2,'Aaryan','Pune',18),(3,'Vaishnavi','Mumbai',20),(4,'Rachna','Mumbai',21),(5,'Shubham','Delhi',21)]
-        # print('Num columnas: ', len(data[0]));
         frame = Frame(window);
         frame.grid(row=4, column=0, columnspan=9, padx=10, pady=10, sticky='W');
-        # table = Table(frame, data, 20, 'blue', 'Arial', 16);
-        # table = Table(frame, data);
-        # df = pd.DataFrame(self.dataList);
-        table = dfTable(frame, self.dataList);
-        table.grid(row=4, column=0, rowspan=1, padx=10, pady=10);
+        frame.columnconfigure(index=0, weight=1)
+        frame.columnconfigure(index=1, weight=1)
+        frame.columnconfigure(index=2, weight=1)
+        frame.columnconfigure(index=3, weight=1)
+        frame.columnconfigure(index=4, weight=1)
+        frame.columnconfigure(index=5, weight=1)
+        frame.columnconfigure(index=6, weight=1)
+        frame.columnconfigure(index=7, weight=1)
+        frame.columnconfigure(index=8, weight=1)
+        frame.columnconfigure(index=9, weight=1)
+        table = self.updateTable(frame, self.dataList);
         
         consultButton = Button(window, text="Consultar", command=lambda: self.tryGet(log, dateText.get(), infoLabel, infoText, frame, table));
         consultButton.grid(row=2, column=0, rowspan=1, padx=10, pady=10, sticky='W');

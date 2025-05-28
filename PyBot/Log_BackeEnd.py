@@ -26,7 +26,7 @@ class logging():
         #proxies = {'https':'http://'+userText+':'+pswText+'@proxy-xm:8080'}
         endpoint = os.getenv("AUTH_ENDPOINT");
         url = baseUrl+endpoint;
-        print(f'url: {url}')
+        # print(f'url: {url}')
 
         headers = CaseInsensitiveDict();
         headers["accept"] = "*/*"
@@ -44,7 +44,7 @@ class logging():
             # print(f'Respuesta: {response}');
             if (response.status_code == 200):
                 self.Token = json.loads(response.text);
-                print(f"Token: {self.Token['token']}");
+                # print(f"Token: {self.Token['token']}");
             else:
                 self.Token = {"error": resp};
                 print(f"Se ha presentado error {response.status_code}: {resp}");
@@ -57,14 +57,14 @@ class logging():
 
     def getData(self, date):
         Token = self.Token;
-        print('Token usado: ', Token);
+        # print('Token usado: ', Token);
         load_dotenv();
         #baseUrl = os.getenv("MANEUVER_URL"); ### PRODUCTIVO
         baseUrl = f"http://localhost:{self.port}/"; ### -------- PRUEBAS --------------
         #proxies = {'https':'http://'+userText+':'+pswText+'@proxy-xm:8080'}
         endpoint = os.getenv("ACTIONS_ENDPOINT");
         url = baseUrl+endpoint;
-        print(f'url: {url}')
+        # print(f'url: {url}')
         headers = CaseInsensitiveDict();
         headers["accept"] = "text/plain"
         headers["Content-Type"] = "application/json"
@@ -113,7 +113,6 @@ class logging():
         
         if("error" in Token.keys()):
             infoText = Token["error"]; 
-        date ="05/19/2025 00:00"
         # self.getData(Token, date)
         #headers = {"Authorization": "Bearer MYREALLYLONGTOKENIGOT"}
         # text1.delete("1.0", END);

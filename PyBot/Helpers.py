@@ -31,9 +31,17 @@ def dfTable(parent, dataList):
     
     df = pd.DataFrame(dataList);
     # print('DataFrame: ', df);
-    tree = ttk.Treeview(parent, show=["headings"]) ## "headings" to not show tree (additional column).
+
+    HScrollBar = Scrollbar(parent, orient='horizontal');
+    HScrollBar.grid(row=5, column=0, rowspan=1, columnspan=9, sticky='ew');
+    VScrollBar = Scrollbar(parent, orient='vertical');
+
+    
+    tree = ttk.Treeview(parent, show=["headings"],  xscrollcommand = HScrollBar.set, yscrollcommand = VScrollBar.set) ## "headings" to not show tree (additional column).
     # print('Columnas: ', list(df.columns));
     
+    HScrollBar.config(command=tree.xview);
+    VScrollBar.config(command=tree.yview);
     wantedCols  = ['id', 'actionType', 'elementId', 'elementName', 'elementCompanyShortName', 'instructionTime', 'occurrenceTime',
                     'confirmationTime', 'causeStatus', 'consignmentId', 'causeChangeAvailability', 'newAvailability',
                     'elementCausingId', 'causeOperational', 'percentage','withPriorAuthorization', 'description',
@@ -51,16 +59,13 @@ def dfTable(parent, dataList):
     
     tree["columns"] = list(newDf.columns)
     for col in newDf.columns:
-        tree.column(col, anchor="center")
+        tree.column(col, anchor="center", minwidth=50, stretch=NO)
         tree.heading(col, text=col)
     # tree.column('#0', width=10) ## Auto additional column to show tree. 
     for _, row in newDf.iterrows():
-        print('Fila: ', list(row));
+        # print('Fila: ', list(row));
         # print('newDf.iterrows: ', newDf.iterrows());
         tree.insert("", END, values=list(row))
         # tree.pack(expand=True, fill="both")
-
-    # for cols in newDf.columns:
-    #     celda = newDf[cols];
-    #     print('Fila: ', )
-    return tree;
+    
+    return [tree, HScrollBar, VScrollBar];
