@@ -36,15 +36,6 @@ class App():
             print('User Granted!');
             consult_GUI(self.backend);
 
-    # REPLACED BY PROPERTY AND SETTER.
-    # def whenIsGrantedIsChanged(self, value):
-    # def __setattr__(self, key, value):
-    #     # self.key = value
-    #     # print('keyChanged: ', key)
-    #     if(key=='isGranted'):
-    #         self.whenIsGrantedIsChanged(value)  # <-- Your function
-    #     super().__setattr__(key, value)
-
 if __name__ == '__main__':
     defaultPort = 8000; 
     defaultEnv = "env";

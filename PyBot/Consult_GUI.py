@@ -11,22 +11,28 @@ class consult_GUI():
         infoLabel.configure(fg=color);
         infoText.set(msg);
 
-    def tryGet(self, backend, selectedDate, infoLabel, infoText, frame, table):
+    def tryGet(self, backend, selectedDate, infoLabel, infoText, numActionsTextLabel, numActionsText, frame, table):
         msg = f"Realizando consulta para el {selectedDate}...";
         self.updateInfoLabel(infoLabel, infoText, "black", msg);
         print(f'Realizando consulta para el {selectedDate}...');
         consultDate = selectedDate;
-        threading.Thread(target=self.executeConsult, args=(backend, consultDate, infoLabel, infoText, frame, table), daemon=True).start()
+        threading.Thread(target=self.executeConsult, args=(backend, consultDate, infoLabel, infoText,numActionsText, frame, table), daemon=True).start()
         infoLabel.update_idletasks();
         table.update_idletasks();
+        numActionsTextLabel.update_idletasks();
         # print('Table list: ', self.dataList);
         # self.executeConsult(backend, consultDate, infoLabel, infoText);
         
-    def executeConsult(self, backend, consultDate, infoLabel, infoText, frame, table):
+    def executeConsult(self, backend, consultDate, infoLabel, infoText, numActionsText, frame, table):
         data = backend.getData(consultDate);
         # data = []
         msg = f"Consulta del {consultDate}."
         infoText.set(msg);
+        if(len(data) == 1):
+            msg2 = f"{len(data)} registro."
+        else:
+            msg2 = f"{len(data)} registros."
+        numActionsText.set(msg2);
         print('Número de elementos: ', len(data));
         # print('First item of data: ', data[0]);
         if(isinstance(data, dict) and 'error' in data.keys()):
@@ -139,11 +145,16 @@ class consult_GUI():
             frame.rowconfigure(index=i, weight=1)
 
         table = self.updateTable(frame, self.dataList);
+
+        numActionsText= StringVar();
+        numActionsText.set("0 registros.");
+        numActionsTextLabel = Label(window, textvariable=numActionsText, padx = 10);
+        numActionsTextLabel.grid(row=10, column=0, columnspan=1, sticky="W");
         
-        consultButton = Button(window, text="Consultar", command=lambda: self.tryGet(backend, dateText.get(), infoLabel, infoText, frame, table));
+        consultButton = Button(window, text="Consultar", command=lambda: self.tryGet(backend, dateText.get(), infoLabel, infoText, numActionsTextLabel, numActionsText, frame, table));
         consultButton.grid(row=2, column=0, rowspan=1, padx=10, pady=10, sticky='W');
         
-
+        
         # text1 = Text(window, height=1, width= 20);
         # text1.grid(row=2, column=0, rowspan=1, columnspan=1) 
 
