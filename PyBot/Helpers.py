@@ -31,9 +31,9 @@ def dfTable(parent, dataList):
     
     df = pd.DataFrame(dataList);
     # print('DataFrame: ', df);
-
+    numElements = len(dataList);
     HScrollBar = Scrollbar(parent, orient='horizontal');
-    HScrollBar.grid(row=5, column=0, rowspan=1, columnspan=9, sticky='ew');
+    # HScrollBar.grid(row=5, column=0, rowspan=1, columnspan=9, sticky='ew');
     VScrollBar = Scrollbar(parent, orient='vertical');
 
     
@@ -59,8 +59,11 @@ def dfTable(parent, dataList):
     
     tree["columns"] = list(newDf.columns)
     for col in newDf.columns:
-        tree.column(col, anchor="center", minwidth=50, stretch=NO)
-        tree.heading(col, text=col)
+        tree.column(col, anchor="center", minwidth=50, stretch=NO);
+        tree.heading(col, text=col);
+    
+    maxHeight = 25;
+    tree.configure(height=maxHeight);
     # tree.column('#0', width=10) ## Auto additional column to show tree. 
     for _, row in newDf.iterrows():
         # print('Fila: ', list(row));

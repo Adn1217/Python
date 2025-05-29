@@ -27,7 +27,7 @@ class consult_GUI():
         # data = []
         msg = f"Consulta del {consultDate}."
         infoText.set(msg);
-        # print('Data: ', data);
+        print('Número de elementos: ', len(data));
         # print('First item of data: ', data[0]);
         if(isinstance(data, dict) and 'error' in data.keys()):
             # self.dataList = {};
@@ -47,8 +47,8 @@ class consult_GUI():
         [table, xscrollBar, yscrollBar] = dfTable(parent, self.dataList);
         # print('Table list: ', self.dataList);
         table.grid(row=4, column=0, rowspan=1, padx=10, pady=10, sticky='EW');
-        xscrollBar.grid(row=5, column=0, rowspan=1, padx=10, pady=10, sticky='EW');
-        yscrollBar.grid(row=4, column=9, rowspan=1, padx=10, pady=10, sticky='NS');
+        xscrollBar.grid(row=5, column=0, rowspan=1, sticky='EW');
+        yscrollBar.grid(row=4, column=10, rowspan=1, sticky='NS');
         return table;
             
 
@@ -132,17 +132,12 @@ class consult_GUI():
         infoLabel.grid(row=3, column=0, columnspan=3, sticky="W");
         
         frame = Frame(window);
-        frame.grid(row=4, column=0, columnspan=9, padx=10, pady=10, sticky='W');
-        frame.columnconfigure(index=0, weight=1)
-        frame.columnconfigure(index=1, weight=1)
-        frame.columnconfigure(index=2, weight=1)
-        frame.columnconfigure(index=3, weight=1)
-        frame.columnconfigure(index=4, weight=1)
-        frame.columnconfigure(index=5, weight=1)
-        frame.columnconfigure(index=6, weight=1)
-        frame.columnconfigure(index=7, weight=1)
-        frame.columnconfigure(index=8, weight=1)
-        frame.columnconfigure(index=9, weight=1)
+        frame.grid(row=4, column=0, columnspan=9, rowspan=1, padx=10, pady=10, sticky='W');
+
+        for i in range(10):
+            frame.columnconfigure(index=i, weight=1)
+            frame.rowconfigure(index=i, weight=1)
+
         table = self.updateTable(frame, self.dataList);
         
         consultButton = Button(window, text="Consultar", command=lambda: self.tryGet(log, dateText.get(), infoLabel, infoText, frame, table));
