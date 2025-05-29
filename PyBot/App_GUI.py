@@ -7,15 +7,22 @@ import time
 class App():
     # backend = backEnd('dev', 8000)
     def __init__(self, backend):
-        self.isGranted = False;
-        # print('Backend instance created: ', backend);
+        self._isGranted = False;
         self.backend = backend;  
-        print('Backend', self.backend)
+        # print('Backend', self.backend)
         # super().__init__();
         # self.geometry("400x200");
         # self.title("Asistente de validación de Información Operativa AVIO")
-        # print('¿User granted?: ', isGranted);
         # print('Token :', self.backend.showToken() )
+
+    @property
+    def isGranted(self):
+        return self._isGranted;
+    
+    @isGranted.setter
+    def isGranted(self, value):
+        self._isGranted = value;
+        self.whenIsGrantedIsChanged(value);
 
     def loginGUI(self):
         log_GUI(backend, self.updateIsGranted);
@@ -29,12 +36,14 @@ class App():
             print('User Granted!');
             consult_GUI(self.backend);
 
-    def __setattr__(self, key, value):
-        # self.key = value
-        # print('keyChanged: ', key)
-        if(key=='isGranted'):
-            self.whenIsGrantedIsChanged(value)  # <-- Your function
-        super().__setattr__(key, value)
+    # REPLACED BY PROPERTY AND SETTER.
+    # def whenIsGrantedIsChanged(self, value):
+    # def __setattr__(self, key, value):
+    #     # self.key = value
+    #     # print('keyChanged: ', key)
+    #     if(key=='isGranted'):
+    #         self.whenIsGrantedIsChanged(value)  # <-- Your function
+    #     super().__setattr__(key, value)
 
 if __name__ == '__main__':
     defaultPort = 8000; 

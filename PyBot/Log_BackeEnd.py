@@ -73,7 +73,7 @@ class backEnd():
         # baseUrl = f"http://localhost:{self.port}/"; ### -------- PRUEBAS --------------
         #proxies = {'https':'http://'+userText+':'+pswText+'@proxy-xm:8080'}
         endpoint = os.getenv("ACTIONS_ENDPOINT");
-        actionsNumber = 100
+        actionsNumber = 10000
         url = self.baseActionsUrl+endpoint;
         # print(f'url: {url}')
         headers = CaseInsensitiveDict();

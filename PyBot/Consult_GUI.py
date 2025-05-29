@@ -98,7 +98,7 @@ class consult_GUI():
         dataListDict =  {}
         for header in wantedCols:
             dataListDict[header] = [];
-        self.dataList = [dataListDict];
+        self._dataList = [dataListDict];
         window = Tk();
         # frm = Frame(window, padx=5);
         # frm.grid();
