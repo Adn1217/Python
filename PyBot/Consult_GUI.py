@@ -11,19 +11,19 @@ class consult_GUI():
         infoLabel.configure(fg=color);
         infoText.set(msg);
 
-    def tryGet(self, log, selectedDate, infoLabel, infoText, frame, table):
+    def tryGet(self, backend, selectedDate, infoLabel, infoText, frame, table):
         msg = f"Realizando consulta para el {selectedDate}...";
         self.updateInfoLabel(infoLabel, infoText, "black", msg);
         print(f'Realizando consulta para el {selectedDate}...');
         consultDate = selectedDate;
-        threading.Thread(target=self.executeConsult, args=(log, consultDate, infoLabel, infoText, frame, table), daemon=True).start()
+        threading.Thread(target=self.executeConsult, args=(backend, consultDate, infoLabel, infoText, frame, table), daemon=True).start()
         infoLabel.update_idletasks();
         table.update_idletasks();
         # print('Table list: ', self.dataList);
-        # self.executeConsult(log, consultDate, infoLabel, infoText);
+        # self.executeConsult(backend, consultDate, infoLabel, infoText);
         
-    def executeConsult(self, log, consultDate, infoLabel, infoText, frame, table):
-        data = log.getData(consultDate);
+    def executeConsult(self, backend, consultDate, infoLabel, infoText, frame, table):
+        data = backend.getData(consultDate);
         # data = []
         msg = f"Consulta del {consultDate}."
         infoText.set(msg);
@@ -84,8 +84,8 @@ class consult_GUI():
 
     
 
-    def __init__(self, log):
-        super().__init__();
+    def __init__(self, backend):
+        # super().__init__();
         # self.withdraw(); #Hidden.
         # self._dataList = {'id': [], 'nombre': [], 'edad': []};
         wantedCols  = ['id', 'actionType', 'elementId', 'elementName', 'elementCompanyShortName', 'instructionTime', 'occurrenceTime',
@@ -140,7 +140,7 @@ class consult_GUI():
 
         table = self.updateTable(frame, self.dataList);
         
-        consultButton = Button(window, text="Consultar", command=lambda: self.tryGet(log, dateText.get(), infoLabel, infoText, frame, table));
+        consultButton = Button(window, text="Consultar", command=lambda: self.tryGet(backend, dateText.get(), infoLabel, infoText, frame, table));
         consultButton.grid(row=2, column=0, rowspan=1, padx=10, pady=10, sticky='W');
         
 

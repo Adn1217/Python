@@ -16,11 +16,9 @@ class log_GUI():
         window.quit();
 
 
-    def __init__(self, log, updateIsGranted, userGranted):
-        super().__init__();
-        userGranted
+    def __init__(self, log, updateIsGranted):
+        # super().__init__();
 
-        #print('Granted recibido de App: ', userGranted)
         window = Tk();
         window.title('Login');
         userLabel = Label(window, text= "Usuario:", padx = 10);

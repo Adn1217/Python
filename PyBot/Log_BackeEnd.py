@@ -8,24 +8,33 @@ from http.client import RemoteDisconnected;
 
 
 
-class logging():
+class backEnd():
 
-    
-    def __init__(self):
-        self.port = 8000;
-        self.Token = {};
-        print("Backend instance Created")
+    def __init__(self, env, port):
+        load_dotenv();
+        self.env = env;
+        self.port = port;
+        self._Token = {};
+
+        if(self.env == "prod"):
+            self.baseAuthUrl = os.getenv("AUTH_URL");
+            self.baseActionsUrl = os.getenv("MANEUVER_URL");
+        else:
+            self.devBaseUrl = os.getenv("URL_LOCAL")+str(self.port)+'/';
+            self.baseAuthUrl = self.devBaseUrl;
+            self.baseActionsUrl = self.devBaseUrl;
+
+        print(f"Backend instance Created in '{self.env}'.")
 
     def showToken(self):
-        return self.Token;
+        return self._Token;
 
     def getToken(self, userText, pswText):
-        load_dotenv();
-        baseUrl = os.getenv("Auth_URL"); ### PRODUCTIVO
+        # baseUrl = os.getenv("Auth_URL"); ### PRODUCTIVO
         # baseUrl = f"http://localhost:{self.port}/"; ### -------- PRUEBAS --------------
         #proxies = {'https':'http://'+userText+':'+pswText+'@proxy-xm:8080'}
         endpoint = os.getenv("AUTH_ENDPOINT");
-        url = baseUrl+endpoint;
+        url = self.baseAuthUrl+endpoint;
         # print(f'url: {url}')
 
         headers = CaseInsensitiveDict();
@@ -36,43 +45,44 @@ class logging():
         payload = '{"validacion":1,"usuario":"'+userText+'","contrasena":"'+pswText+'"}'
 
         try:
-            #r = requests.post(urlA, headers=headers, data=payload, proxies=proxies)
-            response = requests.post(url, headers=headers, data=payload); ### PRODUCTIVO
-            # response = requests.get(url); ### -------- PRUEBAS --------------
+            if (self.env == "prod"):
+                #r = requests.post(urlA, headers=headers, data=payload, proxies=proxies)
+                response = requests.post(url, headers=headers, data=payload); ### PRODUCTIVO
+            else:
+                response = requests.get(url); ### -------- PRUEBAS --------------
             resp = response.json();
             # print(f"Response code: {r.status_code}");
             # print(f'Respuesta: {response}');
             if (response.status_code == 200):
-                self.Token = json.loads(response.text);
-                # print(f"Token: {self.Token['token']}");
+                self._Token = json.loads(response.text);
+                # print(f"Token: {self._Token['token']}");
             else:
-                self.Token = {"error": resp};
+                self._Token = {"error": resp};
                 print(f"Se ha presentado error {response.status_code}: {resp}");
-            return self.Token
+            return self._Token
         except(ConnectionError, RemoteDisconnected) as err:
             print("Se ha presentado Error: ", err);
-            self.Token = {"error": err}
-            return self.Token
+            self._Token = {"error": err}
+            return self._Token
 
 
     def getData(self, date):
-        Token = self.Token;
+        Token = self._Token;
         # print('Token usado: ', Token);
-        load_dotenv();
-        baseUrl = os.getenv("MANEUVER_URL"); ### PRODUCTIVO
+        # baseUrl = os.getenv("MANEUVER_URL"); ### PRODUCTIVO
         # baseUrl = f"http://localhost:{self.port}/"; ### -------- PRUEBAS --------------
         #proxies = {'https':'http://'+userText+':'+pswText+'@proxy-xm:8080'}
         endpoint = os.getenv("ACTIONS_ENDPOINT");
         actionsNumber = 100
-        url = baseUrl+endpoint;
+        url = self.baseActionsUrl+endpoint;
         # print(f'url: {url}')
         headers = CaseInsensitiveDict();
         headers["accept"] = "*/*"
         headers["Content-Type"] = "application/json"
         if('token' in Token.keys()):
             headers = {'Authorization': 'Bearer ' + Token['token']}
-            baseUrl = os.getenv("MANEUVER_URL");
-            endpoint = os.getenv("ACTION_ENDPOINT");
+            # baseUrl = os.getenv("MANEUVER_URL");
+            # endpoint = os.getenv("ACTION_ENDPOINT");
             #dFec = dt.datetime.strptime(self.ui.entFecha.text(), "%Y-%m-%d")
             #dCsl = dFec.strftime('%Y-%m-%d')
             JSONpayload = {
@@ -91,9 +101,15 @@ class logging():
                 "showCneZniElementDetail":"true" 
             } 
             # payload = json.dumps(JSONpayload);
-            response = requests.post(url, headers=headers, json=JSONpayload);  ### PRODUCTIVO #json para usar json, data para usar cadena de string.
-            # response = requests.get(url); ### -------- PRUEBAS --------------
-            resp = response.json();
+            if(self.env == "prod"):
+                response = requests.post(url, headers=headers, json=JSONpayload);  ### PRODUCTIVO #json para usar json, data para usar cadena de string.
+            else:
+                response = requests.get(url); ### -------- PRUEBAS --------------
+            if (response.status_code == 200):
+                resp = response.json();
+            else:
+                resp = {"error": f"Se ha presentado error {response.status_code}"};
+                print(f"Se ha presentado error {response.status_code}");
             # print("Atributos: ", resp[0].keys());
             # Atributos disponibles: ['id', 'actionTypeId', 'actionType', 'flowId', 'flow', 'flowConsecutive', 'scheduledStartDate', 'elementId', 'elementTypeId', 'elementName', 'elementCompanyName', 'elementCompanyShortName', 'instructionTime', 'occurrenceTime', 'confirmationTime', 'causeStatusId', 'causeStatus', 'consignmentId', 'causeChangeAvailabilityId', 'causeChangeAvailability', 'newAvailability', 'elementCausingId', 'causeSuspendedExecutionId', 'causeSuspendedExecution', 'fileDocumentNumber', 'associatedActionId', 'causeOperationalId', 'causeOperational', 'controlVQId', 'controlVQ', 'teleprotectionId', 'teleprotection', 'finalElement', 'percentage', 'instructionTimeChecked', 'occurrenceTimeChecked', 'confirmationTimeChecked', 'order', 'parentTimeActionId', 'parentTypeTimeAssociatedId', 'parentTypeTimeAssociated', 'typeTimeAssociatedId', 'typeTimeAssociated', 'withPriorAuthorization', 'isVoltageControl', 'hidden', 'description', 'verificationNote', 'statusTypeId', 'statusType', 'locked', 'lockedByActionId', 'system', 'originPanelId', 'originPanel', 'causeOrigin', 'causeDetailCno', 'additionalFieldsValue', 'dashboardOrderingDate', 'espId', 'espName', 'espElementId', 'creationTime', 'filterActionOrderingDate', 'unavailableActionId', 'subSystemUnavailableAction', 'cneZone', 'fuel', 'fuelName', 'fuelCEN', 'plantCEN', 'qualityScheme', 'notification', 'reverseNotificationGenerated', 'source', 'disableAvailabilityField', 'dna', 'userValidator', 'configurationId', 'configurationDesc', 'thermalStateId', 'descriptionAdditional']
             # Atributos de interés: ['id', 'actionTypeId', 'actionType', 'flowId', 'flow', 'flowConsecutive', 'scheduledStartDate', 'elementId', 'elementName', 'elementCompanyShortName', 'instructionTime', 'occurrenceTime', 'confirmationTime', 'causeStatus', 'consignmentId', 'causeChangeAvailability', 'newAvailability', 'elementCausingId', 'causeOperational', 'percentage', 'order', 'withPriorAuthorization', 'isVoltageControl', 'description', 'verificationNote', 'statusType', 'system', 'originPanel', 'causeOrigin', 'causeDetailCno', 'additionalFieldsValue', 'espName', 'espElementId', 'creationTime', 'unavailableActionId', 'subSystemUnavailableAction', 'cneZone', 'fuel', 'fuelName', 'fuelCEN', 'plantCEN', 'qualityScheme', 'source','dna', 'userValidator', 'configurationDesc', 'thermalStateId', 'descriptionAdditional']
