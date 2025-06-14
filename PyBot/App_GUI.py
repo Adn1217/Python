@@ -1,8 +1,9 @@
 # import tkinter as tkinter
-from Log_GUI import log_GUI
+import time
+
 from Consult_GUI import consult_GUI
 from Log_BackeEnd import backEnd
-import time
+from Log_GUI import log_GUI
 
 
 class App:
