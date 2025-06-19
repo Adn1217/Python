@@ -188,7 +188,7 @@ class consult_GUI:
         dateLabel.grid(row=0, column=0, sticky="W")
 
         dateText = StringVar()
-        dateText.set(today)
+        dateText.set(str(today))
         dateTextLabel = Label(window, textvariable=dateText, padx=10, fg="blue")
         dateTextLabel.grid(row=0, column=1, columnspan=1, sticky="W")
 

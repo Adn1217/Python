@@ -27,7 +27,7 @@ class App:
         self.whenIsGrantedIsChanged(value)
 
     def loginGUI(self):
-        log_GUI(backend, self.updateIsGranted)
+        log_GUI(self.backend, self.updateIsGranted)
 
     def updateIsGranted(self, isGranted):
         self.isGranted = isGranted

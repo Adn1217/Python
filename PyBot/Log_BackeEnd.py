@@ -20,7 +20,7 @@ class backEnd:
             self.baseAuthUrl = os.getenv("AUTH_URL")
             self.baseActionsUrl = os.getenv("MANEUVER_URL")
         else:
-            self.devBaseUrl = os.getenv("URL_LOCAL") + str(self.port) + "/"
+            self.devBaseUrl = str(os.getenv("URL_LOCAL")) + str(self.port) + "/"
             self.baseAuthUrl = self.devBaseUrl
             self.baseActionsUrl = self.devBaseUrl
 
@@ -34,7 +34,7 @@ class backEnd:
         # baseUrl = f"http://localhost:{self.port}/"; ### -------- PRUEBAS --------------
         # proxies = {'https':'http://'+userText+':'+pswText+'@proxy-xm:8080'}
         endpoint = os.getenv("AUTH_ENDPOINT")
-        url = self.baseAuthUrl + endpoint
+        url = str(self.baseAuthUrl) + endpoint
         # print(f'url: {url}')
 
         headers = CaseInsensitiveDict()
@@ -56,10 +56,12 @@ class backEnd:
             if self.env == "prod":
                 # r = requests.post(urlA, headers=headers, data=payload, proxies=proxies)
                 response = requests.post(
-                    url, headers=headers, data=payload
+                    url, headers=headers, data=payload, timeout=50
                 )  ### PRODUCTIVO
             else:
-                response = requests.get(url)  ### -------- PRUEBAS --------------
+                response = requests.get(
+                    url, timeout=50
+                )  ### -------- PRUEBAS --------------
             resp = response.json()
             # print(f"Response code: {r.status_code}");
             # print(f'Respuesta: {response}');
@@ -81,15 +83,15 @@ class backEnd:
         # baseUrl = os.getenv("MANEUVER_URL"); ### PRODUCTIVO
         # baseUrl = f"http://localhost:{self.port}/"; ### -------- PRUEBAS --------------
         # proxies = {'https':'http://'+userText+':'+pswText+'@proxy-xm:8080'}
-        endpoint = os.getenv("ACTIONS_ENDPOINT")
+        endpoint = str(os.getenv("ACTIONS_ENDPOINT"))
         actionsNumber = 10000
-        url = self.baseActionsUrl + endpoint
+        url = str(self.baseActionsUrl) + endpoint
         # print(f'url: {url}')
         headers = CaseInsensitiveDict()
         headers["accept"] = "*/*"
         headers["Content-Type"] = "application/json"
         if "token" in Token.keys():
-            headers = {"Authorization": "Bearer " + Token["token"]}
+            headers = {"Authorization": "Bearer " + str(Token["token"])}
             # baseUrl = os.getenv("MANEUVER_URL");
             # endpoint = os.getenv("ACTION_ENDPOINT");
             # dFec = dt.datetime.strptime(self.ui.entFecha.text(), "%Y-%m-%d")
@@ -112,10 +114,12 @@ class backEnd:
             # payload = json.dumps(JSONpayload);
             if self.env == "prod":
                 response = requests.post(
-                    url, headers=headers, json=JSONpayload
+                    url, headers=headers, json=JSONpayload, timeout=50
                 )  ### PRODUCTIVO #json para usar json, data para usar cadena de string.
             else:
-                response = requests.get(url)  ### -------- PRUEBAS --------------
+                response = requests.get(
+                    url, timeout=50
+                )  ### -------- PRUEBAS --------------
             if response.status_code == 200:
                 resp = response.json()
             else:
