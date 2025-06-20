@@ -5,7 +5,7 @@ and backend configuration."""
 import time
 
 from Consult_GUI import ConsultGUI
-from Log_BackeEnd import BackEnd
+from Log_BackEnd import BackEnd
 from Log_GUI import LogGUI
 
 
