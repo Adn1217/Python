@@ -1,68 +1,86 @@
+"""This module handles the main application logic, including GUI initialization
+and backend configuration."""
+
 # import tkinter as tkinter
 import time
 
-from Consult_GUI import consult_GUI
-from Log_BackeEnd import backEnd
-from Log_GUI import log_GUI
+from Consult_GUI import ConsultGUI
+from Log_BackeEnd import BackEnd
+from Log_GUI import LogGUI
 
 
 class App:
+    """App class to manage the application state and GUI interactions."""
+
     # backend = backEnd('dev', 8000)
     def __init__(self, backend):
         self._isGranted = False
+        # self._backend = backend
         self.backend = backend
         # print('Backend', self.backend)
         # super().__init__();
         # self.geometry("400x200");
         # self.title("Asistente de validación de Información Operativa AVIO")
-        # print('Token :', self.backend.showToken() )
+        # print('Token :', self.backend.show_token() )
+
+    @property
+    def backend(self):
+        """Property to get the backend instance."""
+        return self._backend
+
+    @backend.setter
+    def backend(self, value):
+        """Setter for the backend instance."""
+        self._backend = value
 
     @property
     def isGranted(self):
+        """Property to get the isGranted status."""
         return self._isGranted
 
     @isGranted.setter
     def isGranted(self, value):
         self._isGranted = value
-        self.whenIsGrantedIsChanged(value)
+        self.when_isgranted_is_changed(value)
 
-    def loginGUI(self):
-        log_GUI(self.backend, self.updateIsGranted)
+    def login_gui(self):
+        """Initialize the login GUI and set up the backend."""
+        LogGUI(self.backend, self.update_is_granted)
 
-    def updateIsGranted(self, isGranted):
+    def update_is_granted(self, isGranted):
+        """Update the isGranted status and print the status for debug."""
         self.isGranted = isGranted
         print("¿User Granted? ", self.isGranted)
 
-    def whenIsGrantedIsChanged(self, isGranted):
+    def when_isgranted_is_changed(self, isGranted):
+        """Callback when isGranted status changes."""
         if isGranted:
             print("User Granted!")
-            consult_GUI(self.backend)
+            ConsultGUI(self.backend)
 
 
-if __name__ == "__main__":
-    defaultPort = 8000
-    defaultEnv = "env"
+def configureBackend(defaultEnv, defaultPort):
+    """Configure the backend with the given environment and port."""
     env = defaultEnv
     intPort = defaultPort
     print("Enter environment ('env:port'/'prod'): ")
     envPort = input()
-    env_port = envPort.split(":")
-    env = env_port[0]
+    _envPort = envPort.split(":")
+    env = _envPort[0]
 
-    if len(env_port) == 1:
+    if len(_envPort) == 1:
         if env == "env":
             print(f"Invalid port number. Using default port {defaultPort}.")
         elif env == "prod":
             print(f"Running App in {env}.")
         else:
-            print(
-                f"Invalid environment. Using default environment '{defaultEnv}' with default port {defaultPort}."
-            )
+            print("Invalid environment.")
+            print(f"Using default environment '{defaultEnv}' and port {defaultPort}.")
             env = defaultEnv
-    elif len(env_port) == 2:
+    elif len(_envPort) == 2:
         if env == "env":
             try:
-                port = env_port[1]
+                port = _envPort[1]
                 intPort = int(port)
                 print(f"Running App {env}:{port}.")
             except (ValueError, IndexError):
@@ -71,20 +89,32 @@ if __name__ == "__main__":
         elif env == "prod":
             print(f"Running '{env}'. Ignoring entered port.")
         else:
-            print(
-                f"Invalid environment. Using default environment '{defaultEnv}' with default port {defaultPort}."
-            )
+            print("Invalid environment.")
+            print(f"Using default environment '{defaultEnv}' and port {defaultPort}.")
 
     else:
-        print(
-            f"Invalid environment. Using default environment '{defaultEnv}' with default port {defaultPort}."
-        )
+        print("Invalid environment.")
+        print(f"Using default environment '{defaultEnv}' and port {defaultPort}.")
         env = defaultEnv
         intPort = defaultPort
 
-    backend = backEnd(env, intPort)
+    return BackEnd(env, intPort)
+
+
+def main():
+    """Main function to run the application."""
+
+    # backend = BackEnd(env, intPort)
+    backend = configureBackend(DEFAULTENV, DEFAULTPORT)
     # print(f"Backend instance Created in {backend.env}.")
     time.sleep(1)
     app = App(backend)
-    app.loginGUI()
+    app.login_gui()
     # app.mainloop();
+
+
+DEFAULTPORT = 8000
+DEFAULTENV = "env"
+
+if __name__ == "__main__":
+    main()

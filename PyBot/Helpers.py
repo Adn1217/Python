@@ -1,10 +1,13 @@
-from tkinter import *
-from tkinter import ttk
+"""This module contains classes and functions to create a table in a Tkinter window
+using Entries and pandas DataFrame with ttk.Treeview among others."""
+
+from tkinter import END, NO, Entry, Scrollbar, ttk
 
 import pandas as pd
 
 
 class Table:
+    """Class to create a table in a Tkinter window using Entries."""
 
     def __init__(self, window, dataList, width, color, font, fontSize):
 
@@ -23,6 +26,7 @@ class Table:
 
 
 def dfTable(parent, dataList):
+    """Create a DataFrame table in a Tkinter window using ttk.Treeview and pandas."""
 
     # print('dataList: ', dataList);
     for item in dataList:  # Eliminando diccionarios internos
@@ -34,20 +38,20 @@ def dfTable(parent, dataList):
     df = pd.DataFrame(dataList)
     # print("DataFrame: ", df)
     # numElements = len(dataList)
-    HScrollBar = Scrollbar(parent, orient="horizontal")
+    hScrollBar = Scrollbar(parent, orient="horizontal")
     # HScrollBar.grid(row=5, column=0, rowspan=1, columnspan=9, sticky='ew');
-    VScrollBar = Scrollbar(parent, orient="vertical")
+    vScrollBar = Scrollbar(parent, orient="vertical")
 
     tree = ttk.Treeview(
         parent,
         show=["headings"],
-        xscrollcommand=HScrollBar.set,
-        yscrollcommand=VScrollBar.set,
+        xscrollcommand=hScrollBar.set,
+        yscrollcommand=vScrollBar.set,
     )  ## "headings" to not show tree (additional column).
     # print('Columnas: ', list(df.columns));
 
-    HScrollBar.config(command=tree.xview)
-    VScrollBar.config(command=tree.yview)
+    hScrollBar.config(command=tree.xview)
+    vScrollBar.config(command=tree.yview)
     wantedCols = [
         "id",
         "actionType",
@@ -111,4 +115,4 @@ def dfTable(parent, dataList):
         tree.insert("", END, values=list(row))
         # tree.pack(expand=True, fill="both")
 
-    return [tree, HScrollBar, VScrollBar]
+    return [tree, hScrollBar, vScrollBar]

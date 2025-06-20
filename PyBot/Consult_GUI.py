@@ -1,17 +1,22 @@
+"""This module handles GUI operations for consulting a database using Tkinter."""
+
 import threading
 from datetime import date, datetime
-from tkinter import *
+from tkinter import Button, Frame, Label, StringVar, Tk
 
 from Helpers import dfTable
 from tkcalendar import Calendar
 
 
-class consult_GUI:
-    def updateInfoLabel(self, infoLabel, infoText, color, msg):
+class ConsultGUI:
+    """Class to manage the GUI for consulting database"""
+
+    def update_infolabel(self, infoLabel, infoText, color, msg):
+        """Update the information label with a message and color."""
         infoLabel.configure(fg=color)
         infoText.set(msg)
 
-    def tryGet(
+    def try_get(
         self,
         backend,
         selectedDate,
@@ -23,11 +28,11 @@ class consult_GUI:
         table,
     ):
         msg = f"Realizando consulta para el {selectedDate}..."
-        self.updateInfoLabel(infoLabel, infoText, "black", msg)
+        self.update_infolabel(infoLabel, infoText, "black", msg)
         print(f"Realizando consulta para el {selectedDate}...")
         consultDate = selectedDate
         threading.Thread(
-            target=self.executeConsult,
+            target=self.execute_consult,
             args=(
                 backend,
                 consultDate,
@@ -45,10 +50,11 @@ class consult_GUI:
         # print('Table list: ', self.dataList);
         # self.executeConsult(backend, consultDate, infoLabel, infoText);
 
-    def executeConsult(
+    def execute_consult(
         self, backend, consultDate, infoLabel, infoText, numActionsText, frame, table
     ):
-        data = backend.getData(consultDate)
+        """Execute the consultation to the backend and update the GUI."""
+        data = backend.get_data(consultDate)
         # data = []
         msg = f"Consulta del {consultDate}."
         infoText.set(msg)
@@ -68,9 +74,10 @@ class consult_GUI:
         else:
             # print('Numero de elementos: ', len(data));
             table.destroy()
-            self.updateTable(frame, data)
+            self.update_table(frame, data)
 
-    def updateTable(self, parent, data):
+    def update_table(self, parent, data):
+        """Update the table with received data."""
         # print('Numero de elementos: ', len(data));
         self.dataList = data
         # df = pd.DataFrame(self.dataList);
@@ -83,13 +90,15 @@ class consult_GUI:
 
     @property
     def dataList(self):
+        """Get the data list."""
         return self._dataList
 
     @dataList.setter
     def dataList(self, value):
         self._dataList = value
 
-    def selectDateAndExit(self, window, calendar, dateText):
+    def select_date_and_exit(self, window, calendar, dateText):
+        """Select the date from the calendar and close the window."""
         selectedDateStr = calendar.get_date()  # .strftime("%Y-%m-%D");
         selectedDateObj = datetime.strptime(selectedDateStr, "%m/%d/%y")
         fselectedDate = selectedDateObj.strftime("%Y-%m-%d")
@@ -98,7 +107,8 @@ class consult_GUI:
         dateText.set(fselectedDate)
         window.destroy()
 
-    def selectDateWindow(self, dateText, today):
+    def select_date_window(self, dateText, today):
+        """Open a new window to select a date."""
         window = Tk()
         # frm = Frame(window, padx=5);
         # frm.grid();
@@ -113,7 +123,7 @@ class consult_GUI:
         selectDateButton2 = Button(
             window,
             text="Seleccionar",
-            command=lambda: self.selectDateAndExit(window, calendar, dateText),
+            command=lambda: self.select_date_and_exit(window, calendar, dateText),
         )
         selectDateButton2.grid(row=4, column=1, rowspan=1, padx=10, pady=10)
 
@@ -195,7 +205,7 @@ class consult_GUI:
         selectDateButton = Button(
             window,
             text="Seleccionar",
-            command=lambda: self.selectDateWindow(dateText, today),
+            command=lambda: self.select_date_window(dateText, today),
         )
         selectDateButton.grid(row=0, column=2, rowspan=1, padx=10, pady=10, sticky="W")
 
@@ -213,7 +223,7 @@ class consult_GUI:
             frame.columnconfigure(index=i, weight=1)
             frame.rowconfigure(index=i, weight=1)
 
-        table = self.updateTable(frame, self.dataList)
+        table = self.update_table(frame, self.dataList)
 
         numActionsText = StringVar()
         numActionsText.set("0 registros.")
@@ -223,7 +233,7 @@ class consult_GUI:
         consultButton = Button(
             window,
             text="Consultar",
-            command=lambda: self.tryGet(
+            command=lambda: self.try_get(
                 backend,
                 dateText.get(),
                 infoLabel,

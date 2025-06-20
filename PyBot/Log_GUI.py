@@ -1,10 +1,14 @@
-from tkinter import *
+"""This module handles login GUI operations for user authentication."""
+
+from tkinter import Button, Entry, Label, StringVar, Tk
 
 
-class log_GUI:
+class LogGUI:
+    """GUI for user login."""
 
-    def tryLogin(self, window, log, updateIsGranted, userEntry, pswEntry, infoText):
-        textInfo = log.logIn(userEntry, pswEntry)
+    def try_login(self, window, log, updateIsGranted, userEntry, pswEntry, infoText):
+        """Try to log in with the provided credentials."""
+        textInfo = log.log_in(userEntry, pswEntry)
         # textInfo ='';
         if textInfo == "":
             window.destroy()
@@ -12,7 +16,8 @@ class log_GUI:
         else:
             infoText.set(textInfo)
 
-    def cancelLogin(self, window, updateGranted):
+    def cancel_login(self, window, updateGranted):
+        """Handle cancellation of the login."""
         updateGranted(False)
         window.quit()
 
@@ -45,7 +50,7 @@ class log_GUI:
         loginButton = Button(
             window,
             text="Ingresar",
-            command=lambda: self.tryLogin(
+            command=lambda: self.try_login(
                 window, log, updateIsGranted, userEntry, pswEntry, infoText
             ),
         )
@@ -54,7 +59,7 @@ class log_GUI:
         cancelButton = Button(
             window,
             text="Cancelar",
-            command=lambda: self.cancelLogin(window, updateIsGranted),
+            command=lambda: self.cancel_login(window, updateIsGranted),
         )
         cancelButton.grid(row=3, column=1, rowspan=1, pady=10)
 

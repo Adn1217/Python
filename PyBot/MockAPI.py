@@ -1,3 +1,5 @@
+"""This module provides a mock API server for testing purposes."""
+
 import json
 import os
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -7,10 +9,13 @@ from dotenv import load_dotenv
 
 
 class MockAPIHandler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        parsed_url = urlparse(self.path)
-        path = parsed_url.path
-        query_params = parse_qs(parsed_url.query)
+    """Handler for the mock API server."""
+
+    def do_get(self):
+        """Handle GET requests to the mock API server."""
+        parsedUrl = urlparse(self.path)
+        path = parsedUrl.path
+        queryParams = parse_qs(parsedUrl.query)
         load_dotenv()
         actionsEndpoint = "/" + str(os.getenv("ACTIONS_ENDPOINT"))
         authEndpoint = "/" + str(os.getenv("AUTH_ENDPOINT"))
@@ -59,9 +64,9 @@ class MockAPIHandler(BaseHTTPRequestHandler):
         elif path.startswith("/posts"):
             with open("data.json", "r", encoding="utf-8") as f:
                 data = json.load(f)
-            if "userId" in query_params:
-                user_id = int(query_params["userId"][0])
-                posts = [post for post in data["posts"] if post["userId"] == user_id]
+            if "userId" in queryParams:
+                userId = int(queryParams["userId"][0])
+                posts = [post for post in data["posts"] if post["userId"] == userId]
                 self.send_response(200)
                 self.send_header("Content-type", "application/json")
                 self.end_headers()
@@ -78,14 +83,16 @@ class MockAPIHandler(BaseHTTPRequestHandler):
             self.wfile.write(b'{"message": "Not found"}')
 
 
-def run(port=8000, server_class=HTTPServer, handler_class=MockAPIHandler):
-    server_address = ("", port)
-    httpd = server_class(server_address, handler_class)
+def run(port=8000, serverClass=HTTPServer, handlerClass=MockAPIHandler):
+    """Run the mock API server."""
+    serverAddress = ("", port)
+    httpd = serverClass(serverAddress, handlerClass)
     print(f"Starting mock API server on port {port}...")
     httpd.serve_forever()
 
 
-if __name__ == "__main__":
+def main():
+    """Main function to run the mock API server."""
     print("Enter localhost port (Default = 8000): ")
     port = input()
 
@@ -94,3 +101,7 @@ if __name__ == "__main__":
     else:
         port = int(port)
         run(port)
+
+
+if __name__ == "__main__":
+    main()
