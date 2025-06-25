@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 class MockAPIHandler(BaseHTTPRequestHandler):
     """Handler for the mock API server."""
 
-    def do_get(self):
+    def do_GET(self):
         """Handle GET requests to the mock API server."""
         parsedUrl = urlparse(self.path)
         path = parsedUrl.path

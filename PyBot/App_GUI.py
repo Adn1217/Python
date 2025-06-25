@@ -14,7 +14,7 @@ class App:
 
     # backend = backEnd('dev', 8000)
     def __init__(self, backend):
-        self._isGranted = False
+        self.isGranted = False
         # self._backend = backend
         self.backend = backend
         # print('Backend', self.backend)

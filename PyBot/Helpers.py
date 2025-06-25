@@ -5,6 +5,8 @@ from tkinter import END, NO, Entry, Scrollbar, ttk
 
 import pandas as pd
 
+import time
+
 
 class Table:
     """Class to create a table in a Tkinter window using Entries."""
@@ -28,12 +30,22 @@ class Table:
 def dfTable(parent, dataList):
     """Create a DataFrame table in a Tkinter window using ttk.Treeview and pandas."""
 
+    datesCol = [
+        "scheduledStartDate",
+        "instructionTime",
+        "occurrenceTime",
+        "confirmationTime",
+    ]
+
     # print('dataList: ', dataList);
-    for item in dataList:  # Eliminando diccionarios internos
+    for item in dataList:  # Eliminando diccionarios internos y formateando campos de fecha.
         # print('item: ', item);
         for key in item.keys():
             if isinstance(item[key], dict):
                 item[key] = item[key]["value"]
+                # if key in datesCol:
+                #     item[key] = item[key].replace("T", " ")  # Replacing 'T' with space in date strings.
+                #     print(f"Formatted date for {key}: {item[key]}")
 
     df = pd.DataFrame(dataList)
     # print("DataFrame: ", df)
@@ -93,6 +105,7 @@ def dfTable(parent, dataList):
         "thermalStateId",
         "descriptionAdditional",
     ]
+
     colsExisting = []
     for col in df.columns:
         if col in wantedCols:

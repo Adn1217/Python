@@ -10,7 +10,7 @@ from tkcalendar import Calendar
 
 class ConsultGUI:
     """Class to manage the GUI for consulting database"""
-
+    "TODO: Fix 'Tcl_AsyncDelete: async handler deleted by the wrong thread' error that appears after several consults with different dates."
     def update_infolabel(self, infoLabel, infoText, color, msg):
         """Update the information label with a message and color."""
         infoLabel.configure(fg=color)
@@ -102,12 +102,13 @@ class ConsultGUI:
         selectedDateStr = calendar.get_date()  # .strftime("%Y-%m-%D");
         selectedDateObj = datetime.strptime(selectedDateStr, "%m/%d/%y")
         fselectedDate = selectedDateObj.strftime("%Y-%m-%d")
+        self.selectedDate = selectedDateObj
         print("Fecha seleccionada: ", fselectedDate)
         # selectedDate2= date.strptime(selectedDate, )
         dateText.set(fselectedDate)
         window.destroy()
 
-    def select_date_window(self, dateText, today):
+    def select_date_window(self, dateText, selectedDate):
         """Open a new window to select a date."""
         window = Tk()
         # frm = Frame(window, padx=5);
@@ -117,7 +118,7 @@ class ConsultGUI:
         dateLabel2 = Label(window, text="Seleccione la fecha de consulta: ", padx=10)
         dateLabel2.grid(row=0, column=0, columnspan=3)
         calendar = Calendar(
-            window, selectmode="day", year=today.year, month=today.month, day=today.day
+            window, selectmode="day", year=selectedDate.year, month=selectedDate.month, day=selectedDate.day
         )
         calendar.grid(row=1, column=1, rowspan=3, padx=10, pady=10)
         selectDateButton2 = Button(
@@ -130,7 +131,7 @@ class ConsultGUI:
     def __init__(self, backend):
         # super().__init__();
         # self.withdraw(); #Hidden.
-        # self._dataList = {'id': [], 'nombre': [], 'edad': []};
+        self._selectedDate= date.today()
         wantedCols = [
             "id",
             "actionType",
@@ -174,7 +175,7 @@ class ConsultGUI:
         ]
         dataListDict = {}
         for header in wantedCols:
-            dataListDict[header] = []
+            dataListDict[header] = ''
         self._dataList = [dataListDict]
         window = Tk()
         # frm = Frame(window, padx=5);
@@ -198,14 +199,14 @@ class ConsultGUI:
         dateLabel.grid(row=0, column=0, sticky="W")
 
         dateText = StringVar()
-        dateText.set(str(today))
+        dateText.set(str(self.selectedDate))
         dateTextLabel = Label(window, textvariable=dateText, padx=10, fg="blue")
         dateTextLabel.grid(row=0, column=1, columnspan=1, sticky="W")
 
         selectDateButton = Button(
             window,
             text="Seleccionar",
-            command=lambda: self.select_date_window(dateText, today),
+            command=lambda: self.select_date_window(dateText, self.selectedDate),
         )
         selectDateButton.grid(row=0, column=2, rowspan=1, padx=10, pady=10, sticky="W")
 
@@ -250,3 +251,13 @@ class ConsultGUI:
         # text1.grid(row=2, column=0, rowspan=1, columnspan=1)
 
         window.mainloop()
+    
+    @property
+    def selectedDate(self):
+        """Property to get the selectedDate attribute."""
+        return self._selectedDate
+
+    @selectedDate.setter
+    def selectedDate(self, value):
+        """Setter for the backend attribute."""
+        self._selectedDate = value
