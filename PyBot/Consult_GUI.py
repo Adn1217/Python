@@ -7,7 +7,6 @@ from tkinter import Button, Frame, Label, Radiobutton, StringVar, Tk, Toplevel
 from Helpers import dfTable
 from tkcalendar import Calendar
 
-
 class ConsultGUI:
     """Class to manage the GUI for consulting database"""
     "TODO: Fix 'Tcl_AsyncDelete: async handler deleted by the wrong thread' error that appears after several consults with different dates."
@@ -46,9 +45,10 @@ class ConsultGUI:
             ),
             daemon=True,
         ).start()
-        infoLabel.update_idletasks()
-        table.update_idletasks()
-        numActionsTextLabel.update_idletasks()
+        # time.sleep(1)
+        # infoLabel.update_idletasks()
+        # table.update_idletasks()
+        # numActionsTextLabel.update_idletasks()
         # print('Table list: ', self.dataList);
         # self.executeConsult(backend, consultDate, infoLabel, infoText);
 
@@ -195,7 +195,7 @@ class ConsultGUI:
             )  # Tamaño de la columna i en relación con las demás.
 
         # window.rowconfigure(0, weight=1); #Tamaño de la fila cero en relación con las demás.
-        today = date.today()
+        # today = date.today()
 
         dateLabel = Label(window, text="Fecha: ", padx=10)
         dateLabel.grid(row=0, column=0, sticky="W")
