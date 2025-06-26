@@ -82,7 +82,7 @@ class BackEnd:
             self._Token = {"error": err}
             return self._Token
 
-    def get_data(self, date):
+    def get_data(self, date, selectedSource="todos"):
         """Get data from the backend based on the provided date."""
         token = self._Token
         # print('Token usado: ', Token);
@@ -112,8 +112,8 @@ class BackEnd:
                 "elementTypeIds": [],
                 "actionTypeIds": [],
                 "originPanelIds": [],
-                "sourceCND": "true",
-                "sourceAgents": "true",
+                "sourceCND": "true" if selectedSource in ["CND", "todos"] else "false",
+                "sourceAgents": "true" if selectedSource in ["agentes", "todos"] else "false",
                 "limitTo": actionsNumber,
                 "showCneZniElementDetail": "true",
             }

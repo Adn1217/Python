@@ -33,7 +33,6 @@ def formatList(dataList):
         "confirmationTime",
     ]
 
-    # print('dataList: ', dataList);
     for item in dataList:  # Eliminando diccionarios internos y formateando campos de fecha.
         # print('item: ', item);
         for key in item.keys():
@@ -110,7 +109,7 @@ def dfTable(parent, dataList):
         "thermalStateId",
         "descriptionAdditional",
     ]
-
+    sourceIndex = wantedCols.index("source") 
     colsExisting = []
     for col in df.columns:
         if col in wantedCols:
@@ -128,9 +127,19 @@ def dfTable(parent, dataList):
     tree.configure(height=maxHeight)
     # tree.column('#0', width=10) ## Auto additional column to show tree.
     for _, row in newDf.iterrows():
-        # print('Fila: ', list(row));
+
+        #print('Fila: ', list(row));
+        #print('Campo: ', list(row)[0]);
+        # print('Campo: ', list(row)[sourceIndex]);
+        if list(row)[sourceIndex] == "Agente" or list(row)[0] == '':
+            tree.insert("", END, values=list(row), tags=("Agent"))
+        elif list(row)[sourceIndex] == "CND": 
+            tree.insert("", END, values=list(row), tags=("CND"))
+        else:
+            tree.insert("", END, values=list(row), tags=("NoSource"))
+        tree.tag_configure('CND', background="#eeeeee") # Light grey
+        tree.tag_configure('NoSource', background='darkgrey')
         # print('newDf.iterrows: ', newDf.iterrows());
-        tree.insert("", END, values=list(row))
         # tree.pack(expand=True, fill="both")
 
     return [tree, hScrollBar, vScrollBar]

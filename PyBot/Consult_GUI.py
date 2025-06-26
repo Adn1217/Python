@@ -2,7 +2,7 @@
 
 import threading
 from datetime import date, datetime
-from tkinter import Button, Frame, Label, StringVar, Tk
+from tkinter import Button, Frame, Label, Radiobutton, StringVar, Tk, Toplevel
 
 from Helpers import dfTable
 from tkcalendar import Calendar
@@ -26,10 +26,11 @@ class ConsultGUI:
         numActionsText,
         frame,
         table,
+        selectedSource="todos"
     ):
-        msg = f"Realizando consulta para el {selectedDate}..."
+        msg = f"Realizando consulta de {selectedSource} para el {selectedDate}..."
         self.update_infolabel(infoLabel, infoText, "black", msg)
-        print(f"Realizando consulta para el {selectedDate}...")
+        print(f"Realizando consulta de {selectedSource} para el {selectedDate}...")
         consultDate = selectedDate
         threading.Thread(
             target=self.execute_consult,
@@ -41,6 +42,7 @@ class ConsultGUI:
                 numActionsText,
                 frame,
                 table,
+                selectedSource
             ),
             daemon=True,
         ).start()
@@ -51,17 +53,17 @@ class ConsultGUI:
         # self.executeConsult(backend, consultDate, infoLabel, infoText);
 
     def execute_consult(
-        self, backend, consultDate, infoLabel, infoText, numActionsText, frame, table
+        self, backend, consultDate, infoLabel, infoText, numActionsText, frame, table, selectedSource
     ):
         """Execute the consultation to the backend and update the GUI."""
-        data = backend.get_data(consultDate)
+        data = backend.get_data(consultDate, selectedSource)
         # data = []
         msg = f"Consulta del {consultDate}."
         infoText.set(msg)
         if len(data) == 1:
-            msg2 = f"{len(data)} registro."
+            msg2 = f"{len(data)} registro de {selectedSource}."
         else:
-            msg2 = f"{len(data)} registros."
+            msg2 = f"{len(data)} registros de {selectedSource}."
         numActionsText.set(msg2)
         print("Número de elementos: ", len(data))
         # print('First item of data: ', data[0]);
@@ -210,6 +212,23 @@ class ConsultGUI:
         )
         selectDateButton.grid(row=0, column=2, rowspan=1, padx=10, pady=10, sticky="W")
 
+        selected_source = StringVar(window, "todos") # Ambos por defecto
+        radio_button1 = Radiobutton(window, text="Agents", variable=selected_source, value="agentes")
+        radio_button2 = Radiobutton(window, text="CND", variable=selected_source, value="CND")
+        radio_button3 = Radiobutton(window, text="Todos", variable=selected_source, value="todos")
+
+        radio_button1.grid(
+            row=2, column=1, columnspan=1, rowspan=1, padx=10, pady=10, sticky="W"
+        )
+
+        radio_button2.grid(
+            row=2, column=2, columnspan=1, rowspan=1, padx=10, pady=10, sticky="W"
+        )
+
+        radio_button3.grid(
+            row=2, column=3, columnspan=1, rowspan=1, padx=10, pady=10, sticky="W"
+        )
+
         infoText = StringVar()
         infoText.set("")
         infoLabel = Label(window, textvariable=infoText, padx=10, fg="red")
@@ -243,6 +262,7 @@ class ConsultGUI:
                 numActionsText,
                 frame,
                 table,
+                selected_source.get()
             ),
         )
         consultButton.grid(row=2, column=0, rowspan=1, padx=10, pady=10, sticky="W")
