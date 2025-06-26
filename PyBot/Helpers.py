@@ -5,8 +5,6 @@ from tkinter import END, NO, Entry, Scrollbar, ttk
 
 import pandas as pd
 
-import time
-
 
 class Table:
     """Class to create a table in a Tkinter window using Entries."""
@@ -26,11 +24,9 @@ class Table:
                 self.e.grid(row=i, column=j)
                 self.e.insert(END, dataList[i][j])
 
+def formatList(dataList):
 
-def dfTable(parent, dataList):
-    """Create a DataFrame table in a Tkinter window using ttk.Treeview and pandas."""
-
-    datesCol = [
+    DATESCOL = [
         "scheduledStartDate",
         "instructionTime",
         "occurrenceTime",
@@ -41,12 +37,21 @@ def dfTable(parent, dataList):
     for item in dataList:  # Eliminando diccionarios internos y formateando campos de fecha.
         # print('item: ', item);
         for key in item.keys():
+            if item[key] is None:
+                item[key] = ""
             if isinstance(item[key], dict):
                 item[key] = item[key]["value"]
-                # if key in datesCol:
-                #     item[key] = item[key].replace("T", " ")  # Replacing 'T' with space in date strings.
-                #     print(f"Formatted date for {key}: {item[key]}")
+            if key in DATESCOL and item[key] is not None and isinstance(item[key].strip(), str):
+                item[key] = item[key].replace("T", " ")  # Replacing 'T' with space in date strings.
+                # print(f"Formatted date for {key}: {item[key]}")
+    return dataList
 
+def dfTable(parent, dataList):
+    """Create a DataFrame table in a Tkinter window using ttk.Treeview and pandas."""
+
+
+    # print('dataList: ', dataList);
+    dataList = formatList(dataList)  # Formateando lista de datos.
     df = pd.DataFrame(dataList)
     # print("DataFrame: ", df)
     # numElements = len(dataList)
