@@ -9,7 +9,6 @@ from tkcalendar import Calendar
 
 class ConsultGUI:
     """Class to manage the GUI for consulting database"""
-    "TODO: Fix 'Tcl_AsyncDelete: async handler deleted by the wrong thread' error that appears after several consults with different dates."
     def update_infolabel(self, infoLabel, infoText, color, msg):
         """Update the information label with a message and color."""
         infoLabel.configure(fg=color)
@@ -104,7 +103,7 @@ class ConsultGUI:
 
     def select_date_window(self, dateText, selectedDate):
         """Open a new window to select a date."""
-        window = Tk()
+        window = Toplevel()
         # frm = Frame(window, padx=5);
         # frm.grid();
         window.title("Seleccione fecha")
