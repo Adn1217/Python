@@ -169,7 +169,7 @@ class ConsultGUI:
         dataListDict = {}
         for header in wantedCols:
             dataListDict[header] = ''
-        self._dataList = [dataListDict]
+        self.dataList = [dataListDict]
         window = Tk()
         # frm = Frame(window, padx=5);
         # frm.grid();
@@ -239,7 +239,7 @@ class ConsultGUI:
         numActionsText = StringVar()
         numActionsText.set("0 registros.")
         numActionsTextLabel = Label(window, textvariable=numActionsText, padx=10)
-        numActionsTextLabel.grid(row=10, column=0, columnspan=1, sticky="W")
+        numActionsTextLabel.grid(row=10, column=0, columnspan=3, sticky="W")
 
         consultButton = Button(
             window,
