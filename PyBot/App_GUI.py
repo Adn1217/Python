@@ -46,6 +46,11 @@ class App:
     def login_gui(self):
         """Initialize the login GUI and set up the backend."""
         LogGUI(self.backend, self.update_is_granted)
+    
+    def consult_gui(self):
+        """Initialize the consult GUI with the backend."""
+        ConsultGUI(self.backend)
+
 
     def update_is_granted(self, isGranted):
         """Update the isGranted status and print the status for debug."""
@@ -56,7 +61,7 @@ class App:
         """Callback when isGranted status changes."""
         if isGranted:
             print("User Granted!")
-            ConsultGUI(self.backend)
+            self.consult_gui()
 
 
 def configureBackend(defaultEnv, defaultPort):
