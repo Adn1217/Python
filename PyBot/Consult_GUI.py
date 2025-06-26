@@ -81,23 +81,15 @@ class ConsultGUI:
     def update_table(self, parent, data):
         """Update the table with received data."""
         # print('Numero de elementos: ', len(data));
-        self.dataList = data
         # df = pd.DataFrame(self.dataList);
-        [table, xscrollBar, yscrollBar] = dfTable(parent, self.dataList)
+        [table, xscrollBar, yscrollBar] = dfTable(parent, data)
         # print('Table list: ', self.dataList);
         table.grid(row=4, column=0, rowspan=1, padx=10, pady=10, sticky="EW")
         xscrollBar.grid(row=5, column=0, rowspan=1, sticky="EW")
         yscrollBar.grid(row=4, column=10, rowspan=1, sticky="NS")
+        self.dataList = data
         return table
 
-    @property
-    def dataList(self):
-        """Get the data list."""
-        return self._dataList
-
-    @dataList.setter
-    def dataList(self, value):
-        self._dataList = value
 
     def select_date_and_exit(self, window, calendar, dateText):
         """Select the date from the calendar and close the window."""
@@ -269,9 +261,21 @@ class ConsultGUI:
 
         # text1 = Text(window, height=1, width= 20);
         # text1.grid(row=2, column=0, rowspan=1, columnspan=1)
+        # while True:
 
+        #     window.update() 
         window.mainloop()
     
+    @property
+    def dataList(self):
+        """Property to get the selectedDate attribute."""
+        return self._dataList
+
+    @dataList.setter
+    def dataList(self, value):
+        """Setter for the backend attribute."""
+        self._dataList = value 
+
     @property
     def selectedDate(self):
         """Property to get the selectedDate attribute."""
@@ -281,3 +285,12 @@ class ConsultGUI:
     def selectedDate(self, value):
         """Setter for the backend attribute."""
         self._selectedDate = value
+
+    @property
+    def dataList(self):
+        """Get the data list."""
+        return self._dataList
+
+    @dataList.setter
+    def dataList(self, value):
+        self._dataList = value
