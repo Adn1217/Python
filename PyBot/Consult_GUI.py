@@ -75,7 +75,7 @@ class ConsultGUI:
             print(f"Info texto: {error}")
         else:
             # print('Numero de elementos: ', len(data));
-            table.destroy()
+            # table.destroy()
             self.update_table(frame, data)
 
     def update_table(self, parent, data):
