@@ -22,10 +22,8 @@ class ConsultGUI:
         selectedDate,
         infoLabel,
         infoText,
-        numActionsTextLabel,
         numActionsText,
         frame,
-        table,
         selectedSource="todos",
     ):
         """Try to get data from the backend and update the GUI."""
@@ -42,7 +40,6 @@ class ConsultGUI:
                 infoText,
                 numActionsText,
                 frame,
-                table,
                 selectedSource,
             ),
             daemon=True,
@@ -62,7 +59,6 @@ class ConsultGUI:
         infoText,
         numActionsText,
         frame,
-        table,
         selectedSource,
     ):
         """Execute the consultation to the backend and update the GUI."""
@@ -280,10 +276,8 @@ class ConsultGUI:
                 dateText.get(),
                 infoLabel,
                 infoText,
-                numActionsTextLabel,
                 numActionsText,
                 frame,
-                table,
                 selectedSource.get(),
             ),
         )
