@@ -7,8 +7,10 @@ from tkinter import Button, Frame, Label, Radiobutton, StringVar, Tk, Toplevel
 from Helpers import dfTable
 from tkcalendar import Calendar
 
+
 class ConsultGUI:
     """Class to manage the GUI for consulting database"""
+
     def update_infolabel(self, infoLabel, infoText, color, msg):
         """Update the information label with a message and color."""
         infoLabel.configure(fg=color)
@@ -24,8 +26,9 @@ class ConsultGUI:
         numActionsText,
         frame,
         table,
-        selectedSource="todos"
+        selectedSource="todos",
     ):
+        """Try to get data from the backend and update the GUI."""
         msg = f"Realizando consulta de {selectedSource} para el {selectedDate}..."
         self.update_infolabel(infoLabel, infoText, "black", msg)
         print(f"Realizando consulta de {selectedSource} para el {selectedDate}...")
@@ -40,7 +43,7 @@ class ConsultGUI:
                 numActionsText,
                 frame,
                 table,
-                selectedSource
+                selectedSource,
             ),
             daemon=True,
         ).start()
@@ -52,7 +55,15 @@ class ConsultGUI:
         # self.executeConsult(backend, consultDate, infoLabel, infoText);
 
     def execute_consult(
-        self, backend, consultDate, infoLabel, infoText, numActionsText, frame, table, selectedSource
+        self,
+        backend,
+        consultDate,
+        infoLabel,
+        infoText,
+        numActionsText,
+        frame,
+        table,
+        selectedSource,
     ):
         """Execute the consultation to the backend and update the GUI."""
         data = backend.get_data(consultDate, selectedSource)
@@ -89,7 +100,6 @@ class ConsultGUI:
         self.dataList = data
         return table
 
-
     def select_date_and_exit(self, window, calendar, dateText):
         """Select the date from the calendar and close the window."""
         selectedDateStr = calendar.get_date()  # .strftime("%Y-%m-%D");
@@ -111,7 +121,11 @@ class ConsultGUI:
         dateLabel2 = Label(window, text="Seleccione la fecha de consulta: ", padx=10)
         dateLabel2.grid(row=0, column=0, columnspan=3)
         calendar = Calendar(
-            window, selectmode="day", year=selectedDate.year, month=selectedDate.month, day=selectedDate.day
+            window,
+            selectmode="day",
+            year=selectedDate.year,
+            month=selectedDate.month,
+            day=selectedDate.day,
         )
         calendar.grid(row=1, column=1, rowspan=3, padx=10, pady=10)
         selectDateButton2 = Button(
@@ -121,10 +135,14 @@ class ConsultGUI:
         )
         selectDateButton2.grid(row=4, column=1, rowspan=1, padx=10, pady=10)
 
+    def validate(self):
+        """Validate operational records."""
+        print("Se pulso validar")
+
     def __init__(self, backend):
         # super().__init__();
         # self.withdraw(); #Hidden.
-        self._selectedDate= date.today()
+        self._selectedDate = date.today()
         wantedCols = [
             "id",
             "actionType",
@@ -168,7 +186,7 @@ class ConsultGUI:
         ]
         dataListDict = {}
         for header in wantedCols:
-            dataListDict[header] = ''
+            dataListDict[header] = ""
         self.dataList = [dataListDict]
         window = Tk()
         # frm = Frame(window, padx=5);
@@ -203,22 +221,35 @@ class ConsultGUI:
         )
         selectDateButton.grid(row=0, column=2, rowspan=1, padx=10, pady=10, sticky="W")
 
-        selected_source = StringVar(window, "todos") # Ambos por defecto
-        radio_button1 = Radiobutton(window, text="Agents", variable=selected_source, value="agentes")
-        radio_button2 = Radiobutton(window, text="CND", variable=selected_source, value="CND")
-        radio_button3 = Radiobutton(window, text="Todos", variable=selected_source, value="todos")
+        selectedSource = StringVar(window, "todos")  # Ambos por defecto
+        radioButton1 = Radiobutton(
+            window, text="Agents", variable=selectedSource, value="agentes"
+        )
+        radioButton2 = Radiobutton(
+            window, text="CND", variable=selectedSource, value="CND"
+        )
+        radioButton3 = Radiobutton(
+            window, text="Todos", variable=selectedSource, value="todos"
+        )
 
-        radio_button1.grid(
+        radioButton1.grid(
             row=2, column=1, columnspan=1, rowspan=1, padx=10, pady=10, sticky="W"
         )
 
-        radio_button2.grid(
+        radioButton2.grid(
             row=2, column=2, columnspan=1, rowspan=1, padx=10, pady=10, sticky="W"
         )
 
-        radio_button3.grid(
+        radioButton3.grid(
             row=2, column=3, columnspan=1, rowspan=1, padx=10, pady=10, sticky="W"
         )
+
+        validateButton = Button(
+            window,
+            text="Validar",
+            command=lambda: self.validate(),
+        )
+        validateButton.grid(row=2, column=4, rowspan=1, padx=10, pady=10, sticky="W")
 
         infoText = StringVar()
         infoText.set("")
@@ -253,7 +284,7 @@ class ConsultGUI:
                 numActionsText,
                 frame,
                 table,
-                selected_source.get()
+                selectedSource.get(),
             ),
         )
         consultButton.grid(row=2, column=0, rowspan=1, padx=10, pady=10, sticky="W")
@@ -262,9 +293,9 @@ class ConsultGUI:
         # text1.grid(row=2, column=0, rowspan=1, columnspan=1)
         # while True:
 
-        #     window.update() 
+        #     window.update()
         window.mainloop()
-    
+
     @property
     def dataList(self):
         """Property to get the selectedDate attribute."""
@@ -273,7 +304,7 @@ class ConsultGUI:
     @dataList.setter
     def dataList(self, value):
         """Setter for the backend attribute."""
-        self._dataList = value 
+        self._dataList = value
 
     @property
     def selectedDate(self):
@@ -284,12 +315,3 @@ class ConsultGUI:
     def selectedDate(self, value):
         """Setter for the backend attribute."""
         self._selectedDate = value
-
-    @property
-    def dataList(self):
-        """Get the data list."""
-        return self._dataList
-
-    @dataList.setter
-    def dataList(self, value):
-        self._dataList = value
