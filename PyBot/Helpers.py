@@ -24,7 +24,9 @@ class Table:
                 self.e.grid(row=i, column=j)
                 self.e.insert(END, dataList[i][j])
 
+
 def formatList(dataList):
+    """Format a list of dictionaries by replacing None with empty strings"""
 
     DATESCOL = [
         "scheduledStartDate",
@@ -33,21 +35,29 @@ def formatList(dataList):
         "confirmationTime",
     ]
 
-    for item in dataList:  # Eliminando diccionarios internos y formateando campos de fecha.
+    for (
+        item
+    ) in dataList:  # Eliminando diccionarios internos y formateando campos de fecha.
         # print('item: ', item);
         for key in item.keys():
             if item[key] is None:
                 item[key] = ""
             if isinstance(item[key], dict):
                 item[key] = item[key]["value"]
-            if key in DATESCOL and item[key] is not None and isinstance(item[key].strip(), str):
-                item[key] = item[key].replace("T", " ")  # Replacing 'T' with space in date strings.
+            if (
+                key in DATESCOL
+                and item[key] is not None
+                and isinstance(item[key].strip(), str)
+            ):
+                item[key] = item[key].replace(
+                    "T", " "
+                )  # Replacing 'T' with space in date strings.
                 # print(f"Formatted date for {key}: {item[key]}")
     return dataList
 
+
 def dfTable(parent, dataList):
     """Create a DataFrame table in a Tkinter window using ttk.Treeview and pandas."""
-
 
     # print('dataList: ', dataList);
     dataList = formatList(dataList)  # Formateando lista de datos.
@@ -109,7 +119,7 @@ def dfTable(parent, dataList):
         "thermalStateId",
         "descriptionAdditional",
     ]
-    sourceIndex = wantedCols.index("source") 
+    sourceIndex = wantedCols.index("source")
     colsExisting = []
     for col in df.columns:
         if col in wantedCols:
@@ -128,17 +138,17 @@ def dfTable(parent, dataList):
     # tree.column('#0', width=10) ## Auto additional column to show tree.
     for _, row in newDf.iterrows():
 
-        #print('Fila: ', list(row));
-        #print('Campo: ', list(row)[0]);
+        # print('Fila: ', list(row));
+        # print('Campo: ', list(row)[0]);
         # print('Campo: ', list(row)[sourceIndex]);
-        if list(row)[sourceIndex] == "Agente" or list(row)[0] == '':
-            tree.insert("", END, values=list(row), tags=("Agent"))
-        elif list(row)[sourceIndex] == "CND": 
-            tree.insert("", END, values=list(row), tags=("CND"))
+        if list(row)[sourceIndex] == "Agente" or list(row)[0] == "":
+            tree.insert("", END, values=list(row), tags="Agent")
+        elif list(row)[sourceIndex] == "CND":
+            tree.insert("", END, values=list(row), tags="CND")
         else:
-            tree.insert("", END, values=list(row), tags=("NoSource"))
-        tree.tag_configure('CND', background="#eeeeee") # Light grey
-        tree.tag_configure('NoSource', background='darkgrey')
+            tree.insert("", END, values=list(row), tags="NoSource")
+        tree.tag_configure("CND", background="#eeeeee")  # Light grey
+        tree.tag_configure("NoSource", background="darkgrey")
         # print('newDf.iterrows: ', newDf.iterrows());
         # tree.pack(expand=True, fill="both")
 
