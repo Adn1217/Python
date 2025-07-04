@@ -243,7 +243,6 @@ class ConsultGUI:
         validateButton = Button(
             window,
             text="Validar",
-            command=lambda: self.validate(),
         )
         validateButton.grid(row=2, column=4, rowspan=1, padx=10, pady=10, sticky="W")
 
@@ -261,7 +260,6 @@ class ConsultGUI:
             frame.columnconfigure(index=i, weight=1)
             frame.rowconfigure(index=i, weight=1)
 
-        table = self.update_table(frame, self.dataList)
 
         numActionsText = StringVar()
         numActionsText.set("0 registros.")
