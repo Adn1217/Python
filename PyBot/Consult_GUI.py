@@ -133,7 +133,93 @@ class ConsultGUI:
 
     def validate(self):
         """Validate operational records."""
-        print("Se pulso validar")
+        agentsDataList = []
+        cndDataList = []
+        for item in self.dataList:
+            if item["source"] == "Agente":
+                agentsDataList.append(item)
+            else:
+                cndDataList.append(item)
+        # datetime_object = datetime.strptime(date_string, format_string
+        for agentItem in agentsDataList:
+            # TODO: Verify fields to compare and check comparing logic.
+            # "consignmentId",
+            # "causeChangeAvailability",
+            # "elementCausingId",
+            # if agentItem["statusType"] in ["Ejecutada", "Editada"]:
+            for cndItem in cndDataList:
+                if (
+                    cndItem["elementId"] == agentItem["elementId"]
+                    and cndItem["actionType"] == agentItem["actionType"]
+                    and (cndItem["causeStatus"] == agentItem["causeStatus"])
+                    and (cndItem["newAvailability"] == agentItem["newAvailability"])
+                    and (cndItem["causeOperational"] == agentItem["causeOperational"])
+                    and (
+                        cndItem["withPriorAuthorization"]
+                        == agentItem["withPriorAuthorization"]
+                    )
+                ):
+                    cndItemInsTimeDate = datetime.strptime(
+                        # cndItem["instructionTime"], "%Y-%m-%d %H:%M:%S.%f"
+                        cndItem["instructionTime"],
+                        "%Y-%m-%d %H:%M:%S",
+                    )
+                    cndItemOcurrTimeDate = datetime.strptime(
+                        cndItem["occurrenceTime"], "%Y-%m-%d %H:%M:%S"
+                    )
+                    cndItemConfTimeDate = datetime.strptime(
+                        cndItem["confirmationTime"], "%Y-%m-%d %H:%M:%S"
+                    )
+                    agentItemInsTimeDate = datetime.strptime(
+                        agentItem["instructionTime"], "%Y-%m-%d %H:%M:%S"
+                    )
+                    agentItemOcurrTimeDate = datetime.strptime(
+                        agentItem["occurrenceTime"], "%Y-%m-%d %H:%M:%S"
+                    )
+                    agentItemConfTimeDate = datetime.strptime(
+                        agentItem["confirmationTime"], "%Y-%m-%d %H:%M:%S"
+                    )
+
+                    instMinsDiff = abs(
+                        (cndItemInsTimeDate - agentItemInsTimeDate).total_seconds() / 60
+                    )
+                    ocurrMinsDiff = abs(
+                        (cndItemOcurrTimeDate - agentItemOcurrTimeDate).total_seconds()
+                        / 60
+                    )
+                    confMinsDiff = abs(
+                        (cndItemConfTimeDate - agentItemConfTimeDate).total_seconds()
+                        / 60
+                    )
+                    if not agentItem["withPriorAuthorization"]:
+                        if (
+                            instMinsDiff <= 2
+                            and ocurrMinsDiff <= 2
+                            and confMinsDiff <= 3
+                        ):
+                            print("Validar agentItem: ")
+                            print(
+                                f"{agentItem['elementId']} - {agentItem['elementName']} - {agentItem['actionType']}"
+                            )
+                            print(
+                                f"{agentItem['instructionTime']} - {agentItem['occurrenceTime']} - {agentItem['confirmationTime']}"
+                            )
+                            print(
+                                f"{agentItem['causeStatus']} - {agentItem['causeOperational']} - {agentItem['newAvailability']}"
+                            )
+                    else:
+                        if ocurrMinsDiff <= 2 and confMinsDiff <= 3:
+                            print("Validar agentItem: ")
+                            print(
+                                f"{agentItem['elementId']} - {agentItem['elementName']} - {agentItem['actionType']}"
+                            )
+                            print(
+                                f"{agentItem['instructionTime']} - {agentItem['occurrenceTime']} - {agentItem['confirmationTime']}"
+                            )
+                            print(
+                                f"{agentItem['causeStatus']} - {agentItem['causeOperational']} - {agentItem['newAvailability']}"
+                            )
+        print("Se pulsó validar")
 
     def __init__(self, backend):
         # super().__init__();
@@ -243,6 +329,7 @@ class ConsultGUI:
         validateButton = Button(
             window,
             text="Validar",
+            command=self.validate,
         )
         validateButton.grid(row=2, column=4, rowspan=1, padx=10, pady=10, sticky="W")
 
@@ -260,6 +347,7 @@ class ConsultGUI:
             frame.columnconfigure(index=i, weight=1)
             frame.rowconfigure(index=i, weight=1)
 
+        self.update_table(frame, self.dataList)
 
         numActionsText = StringVar()
         numActionsText.set("0 registros.")
