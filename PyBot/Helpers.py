@@ -118,8 +118,10 @@ def dfTable(parent, dataList):
         "configurationDesc",
         "thermalStateId",
         "descriptionAdditional",
+        "validate",  # "validate" is used to highlight rows that are validated.
     ]
     sourceIndex = wantedCols.index("source")
+    validateIndex = wantedCols.index("validate")
     colsExisting = []
     for col in df.columns:
         if col in wantedCols:
@@ -141,14 +143,18 @@ def dfTable(parent, dataList):
         # print('Fila: ', list(row));
         # print('Campo: ', list(row)[0]);
         # print('Campo: ', list(row)[sourceIndex]);
-        if list(row)[sourceIndex] == "Agente" or list(row)[0] == "":
+        if (len(list(row)) == len(wantedCols)) and list(row)[validateIndex]:
+            tree.insert("", END, values=list(row), tags="Validate")
+        elif list(row)[sourceIndex] == "Agente" or list(row)[0] == "":
             tree.insert("", END, values=list(row), tags="Agent")
         elif list(row)[sourceIndex] == "CND":
             tree.insert("", END, values=list(row), tags="CND")
         else:
             tree.insert("", END, values=list(row), tags="NoSource")
+
         tree.tag_configure("CND", background="#eeeeee")  # Light grey
         tree.tag_configure("NoSource", background="darkgrey")
+        tree.tag_configure("Validate", background="lightgreen")  ##84de80
         # print('newDf.iterrows: ', newDf.iterrows());
         # tree.pack(expand=True, fill="both")
 

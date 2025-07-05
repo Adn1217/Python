@@ -131,21 +131,23 @@ class ConsultGUI:
         )
         selectDateButton2.grid(row=4, column=1, rowspan=1, padx=10, pady=10)
 
-    def validate(self):
+    def validate(self, frame, dataList):
         """Validate operational records."""
         agentsDataList = []
         cndDataList = []
-        for item in self.dataList:
+        idsToValidate = []
+
+        for item in dataList:
             if item["source"] == "Agente":
                 agentsDataList.append(item)
             else:
                 cndDataList.append(item)
-        # datetime_object = datetime.strptime(date_string, format_string
         for agentItem in agentsDataList:
             # TODO: Verify fields to compare and check comparing logic.
             # "consignmentId",
             # "causeChangeAvailability",
             # "elementCausingId",
+            agentItemId = agentItem["id"]
             # if agentItem["statusType"] in ["Ejecutada", "Editada"]:
             for cndItem in cndDataList:
                 if (
@@ -197,6 +199,7 @@ class ConsultGUI:
                             and ocurrMinsDiff <= 2
                             and confMinsDiff <= 3
                         ):
+                            cndItemId = cndItem["id"]
                             print("Validar agentItem: ")
                             print(
                                 f"{agentItem['elementId']} - {agentItem['elementName']} - {agentItem['actionType']}"
@@ -207,8 +210,11 @@ class ConsultGUI:
                             print(
                                 f"{agentItem['causeStatus']} - {agentItem['causeOperational']} - {agentItem['newAvailability']}"
                             )
+                            idsToValidate.extend([agentItemId, cndItemId])
+                            break
                     else:
                         if ocurrMinsDiff <= 2 and confMinsDiff <= 3:
+                            cndItemId = cndItem["id"]
                             print("Validar agentItem: ")
                             print(
                                 f"{agentItem['elementId']} - {agentItem['elementName']} - {agentItem['actionType']}"
@@ -219,6 +225,18 @@ class ConsultGUI:
                             print(
                                 f"{agentItem['causeStatus']} - {agentItem['causeOperational']} - {agentItem['newAvailability']}"
                             )
+                            idsToValidate.extend([agentItemId, cndItemId])
+                            break
+
+        itemsList = dataList
+
+        for item in itemsList:
+            if item["id"] in idsToValidate:
+                item["validate"] = True
+            else:
+                item["validate"] = False
+
+        self.update_table(frame, itemsList)
         print("Se pulsó validar")
 
     def __init__(self, backend):
@@ -329,7 +347,7 @@ class ConsultGUI:
         validateButton = Button(
             window,
             text="Validar",
-            command=self.validate,
+            command=lambda: self.validate(frame, self.dataList),
         )
         validateButton.grid(row=2, column=4, rowspan=1, padx=10, pady=10, sticky="W")
 
