@@ -135,7 +135,7 @@ def dfTable(parent, dataList):
         tree.column(col, anchor="center", minwidth=50, stretch=NO)
         tree.heading(col, text=col)
 
-    maxHeight = 25
+    maxHeight = 28
     tree.configure(height=maxHeight)
     # tree.column('#0', width=10) ## Auto additional column to show tree.
     for _, row in newDf.iterrows():
