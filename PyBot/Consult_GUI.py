@@ -24,6 +24,7 @@ class ConsultGUI:
         infoText,
         numActionsText,
         frame,
+        button,
         selectedSource="todos",
     ):
         """Try to get data from the backend and update the GUI."""
@@ -40,6 +41,7 @@ class ConsultGUI:
                 infoText,
                 numActionsText,
                 frame,
+                button,
                 selectedSource,
             ),
             daemon=True,
@@ -59,6 +61,7 @@ class ConsultGUI:
         infoText,
         numActionsText,
         frame,
+        button,
         selectedSource,
     ):
         """Execute the consultation to the backend and update the GUI."""
@@ -82,9 +85,9 @@ class ConsultGUI:
         else:
             # print('Numero de elementos: ', len(data));
             # table.destroy()
-            self.update_table(frame, data)
+            self.update_table(frame, data, button)
 
-    def update_table(self, parent, data):
+    def update_table(self, parent, data, button=None):
         """Update the table with received data."""
         # print('Numero de elementos: ', len(data));
         # df = pd.DataFrame(self.dataList);
@@ -94,7 +97,14 @@ class ConsultGUI:
         xscrollBar.grid(row=5, column=0, rowspan=1, sticky="EW")
         yscrollBar.grid(row=4, column=10, rowspan=1, sticky="NS")
         self.dataList = data
+        if button is not None:
+            self.update_button_state(button, self.dataList)
         return table
+
+    def update_button_state(self, validateButton: Button, dataList):
+        """Update the state of the validate button based on the dataList number of elements."""
+        state = "normal" if len(dataList) > 1 else "disabled"
+        validateButton.configure(state=state)
 
     def select_date_and_exit(self, window, calendar, dateText):
         """Select the date from the calendar and close the window."""
@@ -142,6 +152,7 @@ class ConsultGUI:
                 agentsDataList.append(item)
             else:
                 cndDataList.append(item)
+
         for agentItem in agentsDataList:
             # TODO: Verify fields to compare and check comparing logic.
             # "consignmentId",
@@ -347,6 +358,7 @@ class ConsultGUI:
         validateButton = Button(
             window,
             text="Validar",
+            state="disabled",
             command=lambda: self.validate(frame, self.dataList),
         )
         validateButton.grid(row=2, column=4, rowspan=1, padx=10, pady=10, sticky="W")
@@ -365,7 +377,7 @@ class ConsultGUI:
             frame.columnconfigure(index=i, weight=1)
             frame.rowconfigure(index=i, weight=1)
 
-        self.update_table(frame, self.dataList)
+        self.update_table(frame, self.dataList, validateButton)
 
         numActionsText = StringVar()
         numActionsText.set("0 registros.")
@@ -382,6 +394,7 @@ class ConsultGUI:
                 infoText,
                 numActionsText,
                 frame,
+                validateButton,
                 selectedSource.get(),
             ),
         )
