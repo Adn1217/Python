@@ -18,32 +18,44 @@ class ConsultGUI:
 
     def try_get(
         self,
-        backend,
-        selectedDate,
-        infoLabel,
-        infoText,
-        numActionsText,
-        frame,
-        button,
-        selectedSource="todos",
+        **keywords,  # selectedDate, infoLabel, infoText, numActionsText, frame, button, selectedSource="todos"
     ):
         """Try to get data from the backend and update the GUI."""
+        backend = keywords["backend"]
+        selectedDate = keywords["selectedDate"]
+        infoLabel = keywords["infoLabel"]
+        infoText = keywords["infoText"]
+        numActionsText = keywords["numActionsText"]
+        frame = keywords["frame"]
+        button = keywords["button"]
+        selectedSource = "todos"
+        selectedSource = keywords["selectedSource"]
         msg = f"Realizando consulta de {selectedSource} para el {selectedDate}..."
         self.update_infolabel(infoLabel, infoText, "black", msg)
         print(f"Realizando consulta de {selectedSource} para el {selectedDate}...")
         consultDate = selectedDate
         threading.Thread(
             target=self.execute_consult,
-            args=(
-                backend,
-                consultDate,
-                infoLabel,
-                infoText,
-                numActionsText,
-                frame,
-                button,
-                selectedSource,
-            ),
+            # args=(
+            #     backend,
+            #     consultDate,
+            #     infoLabel,
+            #     infoText,
+            #     numActionsText,
+            #     frame,
+            #     button,
+            #     selectedSource,
+            # ),
+            kwargs={
+                "backend": backend,
+                "consultDate": consultDate,
+                "infoLabel": infoLabel,
+                "infoText": infoText,
+                "numActionsText": numActionsText,
+                "frame": frame,
+                "button": button,
+                "selectedSource": selectedSource,
+            },
             daemon=True,
         ).start()
         # time.sleep(1)
@@ -55,16 +67,18 @@ class ConsultGUI:
 
     def execute_consult(
         self,
-        backend,
-        consultDate,
-        infoLabel,
-        infoText,
-        numActionsText,
-        frame,
-        button,
-        selectedSource,
+        **keywords,  # backend, consultDate, infoLabel, infoText, numActionsText, frame, button, selectedSource
     ):
         """Execute the consultation to the backend and update the GUI."""
+        backend = keywords["backend"]
+        consultDate = keywords["consultDate"]
+        infoLabel = keywords["infoLabel"]
+        infoText = keywords["infoText"]
+        numActionsText = keywords["numActionsText"]
+        frame = keywords["frame"]
+        button = keywords["button"]
+        selectedSource = keywords["selectedSource"]
+
         data = backend.get_data(consultDate, selectedSource)
         # data = []
         msg = f"Consulta del {consultDate}."
@@ -211,31 +225,13 @@ class ConsultGUI:
                             and confMinsDiff <= 3
                         ):
                             cndItemId = cndItem["id"]
-                            print("Validar agentItem: ")
-                            print(
-                                f"{agentItem['elementId']} - {agentItem['elementName']} - {agentItem['actionType']}"
-                            )
-                            print(
-                                f"{agentItem['instructionTime']} - {agentItem['occurrenceTime']} - {agentItem['confirmationTime']}"
-                            )
-                            print(
-                                f"{agentItem['causeStatus']} - {agentItem['causeOperational']} - {agentItem['newAvailability']}"
-                            )
+                            # print(f"Validar agentItem: {agentItemId}")
                             idsToValidate.extend([agentItemId, cndItemId])
                             break
                     else:
                         if ocurrMinsDiff <= 2 and confMinsDiff <= 3:
                             cndItemId = cndItem["id"]
-                            print("Validar agentItem: ")
-                            print(
-                                f"{agentItem['elementId']} - {agentItem['elementName']} - {agentItem['actionType']}"
-                            )
-                            print(
-                                f"{agentItem['instructionTime']} - {agentItem['occurrenceTime']} - {agentItem['confirmationTime']}"
-                            )
-                            print(
-                                f"{agentItem['causeStatus']} - {agentItem['causeOperational']} - {agentItem['newAvailability']}"
-                            )
+                            # print(f"Validar agentItem: {agentItemId}")
                             idsToValidate.extend([agentItemId, cndItemId])
                             break
 
@@ -388,14 +384,14 @@ class ConsultGUI:
             window,
             text="Consultar",
             command=lambda: self.try_get(
-                backend,
-                dateText.get(),
-                infoLabel,
-                infoText,
-                numActionsText,
-                frame,
-                validateButton,
-                selectedSource.get(),
+                backend=backend,
+                selectedDate=dateText.get(),
+                infoLabel=infoLabel,
+                infoText=infoText,
+                numActionsText=numActionsText,
+                frame=frame,
+                button=validateButton,
+                selectedSource=selectedSource.get(),
             ),
         )
         consultButton.grid(row=2, column=0, rowspan=1, padx=10, pady=10, sticky="W")

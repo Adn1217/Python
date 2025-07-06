@@ -9,7 +9,13 @@ import pandas as pd
 class Table:
     """Class to create a table in a Tkinter window using Entries."""
 
-    def __init__(self, window, dataList, width, color, font, fontSize):
+    def __init__(self, parent, **kwargs):  #
+        """Initialize the table with the given parameters."""
+        dataList = kwargs["dataList"]
+        width = kwargs["width"]
+        color = kwargs["color"]
+        font = kwargs["font"]
+        fontSize = kwargs["fontSize"]
 
         numRows = len(dataList)
         numCols = len(dataList[0])
@@ -19,7 +25,7 @@ class Table:
             for j in range(numCols):
 
                 self.e = Entry(
-                    window, width=width, fg=color, font=(font, fontSize, "bold")
+                    parent, width=width, fg=color, font=(font, fontSize, "bold")
                 )
                 self.e.grid(row=i, column=j)
                 self.e.insert(END, dataList[i][j])
