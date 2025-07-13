@@ -6,8 +6,16 @@ from tkinter import Button, Entry, Label, StringVar, Tk
 class LogGUI:
     """GUI for user login."""
 
-    def try_login(self, window, log, updateIsGranted, userEntry, pswEntry, infoText):
+    def try_login(
+        self, window, **kwargs
+    ):  # log, updateIsGranted, userEntry, pswEntry, infoText
         """Try to log in with the provided credentials."""
+        log = kwargs["log"]
+        updateIsGranted = kwargs["updateIsGranted"]
+        userEntry = kwargs["userEntry"]
+        pswEntry = kwargs["pswEntry"]
+        infoText = kwargs["infoText"]
+
         textInfo = log.log_in(userEntry, pswEntry)
         # textInfo ='';
         if textInfo == "":
@@ -51,7 +59,12 @@ class LogGUI:
             window,
             text="Ingresar",
             command=lambda: self.try_login(
-                window, log, updateIsGranted, userEntry, pswEntry, infoText
+                window,
+                log=log,
+                updateIsGranted=updateIsGranted,
+                userEntry=userEntry,
+                pswEntry=pswEntry,
+                infoText=infoText,
             ),
         )
         loginButton.grid(row=3, column=0, rowspan=1, padx=10, pady=10)
