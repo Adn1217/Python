@@ -62,7 +62,7 @@ def formatList(dataList):
     return dataList
 
 
-def dfTable(parent, dataList):
+def dfTable(parent, dataList, layout="completa"):
     """Create a DataFrame table in a Tkinter window using ttk.Treeview and pandas."""
 
     # print('dataList: ', dataList);
@@ -126,6 +126,39 @@ def dfTable(parent, dataList):
         "descriptionAdditional",
         "validate",  # "validate" is used to highlight rows that are validated.
     ]
+
+    if layout == "compacta":
+
+        wantedCols = [
+            "actionType",
+            "elementName",
+            "elementCompanyShortName",
+            "instructionTime",
+            "occurrenceTime",
+            "confirmationTime",
+            "causeStatus",
+            "consignmentId",
+            "newAvailability",
+            "elementCausingId",
+            "causeOperational",
+            "withPriorAuthorization",
+            "statusType",
+            "system",
+            "causeOrigin",
+            "unavailableActionId",
+            "subSystemUnavailableAction",
+            "cneZone",
+            "fuel",
+            "fuelName",
+            "fuelCEN",
+            "plantCEN",
+            "qualityScheme",
+            "source",
+            "configurationDesc",
+            "thermalStateId",
+            "validate",  # "validate" is used to highlight rows that are validated.
+        ]
+
     sourceIndex = wantedCols.index("source")
     validateIndex = wantedCols.index("validate")
     colsExisting = []

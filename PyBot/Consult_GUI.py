@@ -35,6 +35,7 @@ class ConsultGUI:
         print(f"Realizando consulta de {selectedSource} para el {selectedDate}...")
         consultDate = selectedDate
         threading.Thread(
+            # TODO: Optimize threading to avoid passing too many arguments. Separate update table segment.
             target=self.execute_consult,
             # args=(
             #     backend,
@@ -99,13 +100,13 @@ class ConsultGUI:
         else:
             # print('Numero de elementos: ', len(data));
             # table.destroy()
-            self.update_table(frame, data, button)
+            self.update_table(frame, data, self.selectedLayout, button)
 
-    def update_table(self, parent, data, button=None):
+    def update_table(self, parent, data, selectedLayout="completa", button=None):
         """Update the table with received data."""
         # print('Numero de elementos: ', len(data));
         # df = pd.DataFrame(self.dataList);
-        [table, xscrollBar, yscrollBar] = dfTable(parent, data)
+        [table, xscrollBar, yscrollBar] = dfTable(parent, data, selectedLayout)
         # print('Table list: ', self.dataList);
         table.grid(row=4, column=0, rowspan=1, padx=10, pady=10, sticky="EW")
         xscrollBar.grid(row=5, column=0, rowspan=1, sticky="EW")
@@ -154,6 +155,13 @@ class ConsultGUI:
             command=lambda: self.select_date_and_exit(window, calendar, dateText),
         )
         selectDateButton2.grid(row=4, column=1, rowspan=1, padx=10, pady=10)
+
+    def on_radio_change(self, parent, selectedLayout):
+        """Callback function for layout radio button change."""
+        if self.selectedLayout != selectedLayout:
+            self.selectedLayout = selectedLayout
+            self.update_table(parent, self.dataList, self.selectedLayout)
+            # print("Radio button changed")
 
     def validate(self, frame, dataList):
         """Validate operational records."""
@@ -243,13 +251,15 @@ class ConsultGUI:
             else:
                 item["validate"] = False
 
-        self.update_table(frame, itemsList)
+        self.update_table(frame, itemsList, self.selectedLayout)
         print("Se pulsó validar")
 
     def __init__(self, backend):
         # super().__init__();
         # self.withdraw(); #Hidden.
-        self._selectedDate = date.today()
+        self.selectedDate = date.today()
+        self.selectedLayout = "completa"  # Default layout
+
         wantedCols = [
             "id",
             "actionType",
@@ -329,26 +339,58 @@ class ConsultGUI:
         selectDateButton.grid(row=0, column=2, rowspan=1, padx=10, pady=10, sticky="W")
 
         selectedSource = StringVar(window, "todos")  # Ambos por defecto
-        radioButton1 = Radiobutton(
+        radioButtonAgents = Radiobutton(
             window, text="Agents", variable=selectedSource, value="agentes"
         )
-        radioButton2 = Radiobutton(
+        radioButtonCND = Radiobutton(
             window, text="CND", variable=selectedSource, value="CND"
         )
-        radioButton3 = Radiobutton(
+        radioButtonTodos = Radiobutton(
             window, text="Todos", variable=selectedSource, value="todos"
         )
 
-        radioButton1.grid(
+        radioButtonAgents.grid(
             row=2, column=1, columnspan=1, rowspan=1, padx=10, pady=10, sticky="W"
         )
 
-        radioButton2.grid(
+        radioButtonCND.grid(
             row=2, column=2, columnspan=1, rowspan=1, padx=10, pady=10, sticky="W"
         )
 
-        radioButton3.grid(
+        radioButtonTodos.grid(
             row=2, column=3, columnspan=1, rowspan=1, padx=10, pady=10, sticky="W"
+        )
+
+        vistaText = StringVar()
+        vistaText.set("Vista: ")
+        vistaLabel = Label(
+            window, textvariable=vistaText, padx=10, font=("Helvetica", 10, "bold")
+        )
+        vistaLabel.grid(row=2, column=4, columnspan=1, sticky="W")
+
+        selectedLayout = StringVar(window, self.selectedLayout)  # Completa por defecto
+        radioButtonCompacta = Radiobutton(
+            window,
+            text="Compacta",
+            variable=selectedLayout,
+            value="compacta",
+            command=lambda: self.on_radio_change(frame, selectedLayout.get()),
+        )
+
+        radioButtonCompleta = Radiobutton(
+            window,
+            text="Completa",
+            variable=selectedLayout,
+            value="completa",
+            command=lambda: self.on_radio_change(frame, selectedLayout.get()),
+        )
+
+        radioButtonCompacta.grid(
+            row=2, column=5, columnspan=1, rowspan=1, padx=10, pady=10, sticky="W"
+        )
+
+        radioButtonCompleta.grid(
+            row=2, column=6, columnspan=1, rowspan=1, padx=10, pady=10, sticky="W"
         )
 
         validateButton = Button(
@@ -357,7 +399,7 @@ class ConsultGUI:
             state="disabled",
             command=lambda: self.validate(frame, self.dataList),
         )
-        validateButton.grid(row=2, column=4, rowspan=1, padx=10, pady=10, sticky="W")
+        validateButton.grid(row=2, column=7, rowspan=1, padx=10, pady=10, sticky="W")
 
         infoText = StringVar()
         infoText.set("")
@@ -373,7 +415,7 @@ class ConsultGUI:
             frame.columnconfigure(index=i, weight=1)
             frame.rowconfigure(index=i, weight=1)
 
-        self.update_table(frame, self.dataList, validateButton)
+        self.update_table(frame, self.dataList, self.selectedLayout, validateButton)
 
         numActionsText = StringVar()
         numActionsText.set("0 registros.")
@@ -402,6 +444,16 @@ class ConsultGUI:
 
         #     window.update()
         window.mainloop()
+
+    @property
+    def selectedLayout(self):
+        """Property to get the selectedLayout attribute."""
+        return self._selectedLayout
+
+    @selectedLayout.setter
+    def selectedLayout(self, value):
+        """Setter for the selectedLayout attribute."""
+        self._selectedLayout = value
 
     @property
     def dataList(self):
