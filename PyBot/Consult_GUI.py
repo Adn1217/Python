@@ -424,10 +424,12 @@ class ConsultGUI:
             row=4, column=0, columnspan=9, rowspan=1, padx=10, pady=10, sticky="W"
         )
 
-        for i in range(10):
-            frame.columnconfigure(index=i, weight=1)
-            frame.rowconfigure(index=i, weight=1)
-
+        frame.columnconfigure(
+            list(range(gridNumCols)), weight=1
+        )  # Configure all columns to expand
+        frame.rowconfigure(
+            list(range(gridNumCols)), weight=1
+        )  # Configure all rows to expand
         frame.grid_propagate(False)  # Prevent frame from resizing to fit contents
         self.update_table(frame, self.dataList, self.selectedLayout, validateButton)
 
