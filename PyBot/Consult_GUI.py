@@ -2,7 +2,8 @@
 
 import threading
 from datetime import date, datetime
-from tkinter import Button, Frame, Label, Radiobutton, StringVar, Tk, Toplevel
+from tkinter import (Button, Frame, Label, Radiobutton, StringVar, Tk,
+                     Toplevel, ttk)
 
 from Helpers import dfTable
 from tkcalendar import Calendar
@@ -314,6 +315,10 @@ class ConsultGUI:
         # window.state('zoomed');
         # window.iconbitmap('icono.ico');
 
+        tabControl = ttk.Notebook(window)  # Create a notebook for tabs
+        consultTab = Frame(tabControl)  # Create a tab for consultations
+        customFieldsTab = Frame(tabControl)  # Create a tab for custom field's
+
         gridNumCols = 10
         for i in range(gridNumCols):
             window.columnconfigure(
@@ -323,30 +328,36 @@ class ConsultGUI:
         # window.rowconfigure(0, weight=1); #Tamaño de la fila cero en relación con las demás.
         # today = date.today()
 
-        dateLabel = Label(window, text="Fecha: ", padx=10)
-        dateLabel.grid(row=0, column=0, sticky="W")
+        tabControl.add(consultTab, text="Consulta")  # Add the consultation tabs
+        tabControl.add(
+            customFieldsTab, text="Campos personalizados"
+        )  # Add the custom fields tabs
+        tabControl.grid(row=0, column=0, rowspan=1, padx=10, pady=10, sticky="W")
+
+        dateLabel = Label(consultTab, text="Fecha: ", padx=10)
+        dateLabel.grid(row=1, column=0, sticky="W")
 
         dateText = StringVar()
         dateText.set(str(self.selectedDate))
-        dateTextLabel = Label(window, textvariable=dateText, padx=10, fg="blue")
-        dateTextLabel.grid(row=0, column=1, columnspan=1, sticky="W")
+        dateTextLabel = Label(consultTab, textvariable=dateText, padx=10, fg="blue")
+        dateTextLabel.grid(row=1, column=1, columnspan=1, sticky="W")
 
         selectDateButton = Button(
-            window,
+            consultTab,
             text="Seleccionar",
             command=lambda: self.select_date_window(dateText, self.selectedDate),
         )
-        selectDateButton.grid(row=0, column=2, rowspan=1, padx=10, pady=10, sticky="W")
+        selectDateButton.grid(row=1, column=2, rowspan=1, padx=10, pady=10, sticky="W")
 
-        selectedSource = StringVar(window, "todos")  # Ambos por defecto
+        selectedSource = StringVar(consultTab, "todos")  # Ambos por defecto
         radioButtonAgents = Radiobutton(
-            window, text="Agents", variable=selectedSource, value="agentes"
+            consultTab, text="Agents", variable=selectedSource, value="agentes"
         )
         radioButtonCND = Radiobutton(
-            window, text="CND", variable=selectedSource, value="CND"
+            consultTab, text="CND", variable=selectedSource, value="CND"
         )
         radioButtonTodos = Radiobutton(
-            window, text="Todos", variable=selectedSource, value="todos"
+            consultTab, text="Todos", variable=selectedSource, value="todos"
         )
 
         radioButtonAgents.grid(
@@ -364,13 +375,15 @@ class ConsultGUI:
         vistaText = StringVar()
         vistaText.set("Vista: ")
         vistaLabel = Label(
-            window, textvariable=vistaText, padx=10, font=("Helvetica", 10, "bold")
+            consultTab, textvariable=vistaText, padx=10, font=("Helvetica", 10, "bold")
         )
         vistaLabel.grid(row=2, column=4, columnspan=1, sticky="W")
 
-        selectedLayout = StringVar(window, self.selectedLayout)  # Completa por defecto
+        selectedLayout = StringVar(
+            consultTab, self.selectedLayout
+        )  # Completa por defecto
         radioButtonCompacta = Radiobutton(
-            window,
+            consultTab,
             text="Compacta",
             variable=selectedLayout,
             value="compacta",
@@ -378,7 +391,7 @@ class ConsultGUI:
         )
 
         radioButtonCompleta = Radiobutton(
-            window,
+            consultTab,
             text="Completa",
             variable=selectedLayout,
             value="completa",
@@ -394,7 +407,7 @@ class ConsultGUI:
         )
 
         validateButton = Button(
-            window,
+            consultTab,
             text="Validar",
             state="disabled",
             command=lambda: self.validate(frame, self.dataList),
@@ -403,10 +416,10 @@ class ConsultGUI:
 
         infoText = StringVar()
         infoText.set("")
-        infoLabel = Label(window, textvariable=infoText, padx=10, fg="red")
+        infoLabel = Label(consultTab, textvariable=infoText, padx=10, fg="red")
         infoLabel.grid(row=3, column=0, columnspan=3, sticky="W")
 
-        frame = Frame(window)
+        frame = Frame(consultTab, width=1500, height=600)
         frame.grid(
             row=4, column=0, columnspan=9, rowspan=1, padx=10, pady=10, sticky="W"
         )
@@ -415,15 +428,16 @@ class ConsultGUI:
             frame.columnconfigure(index=i, weight=1)
             frame.rowconfigure(index=i, weight=1)
 
+        frame.grid_propagate(False)  # Prevent frame from resizing to fit contents
         self.update_table(frame, self.dataList, self.selectedLayout, validateButton)
 
         numActionsText = StringVar()
         numActionsText.set("0 registros.")
-        numActionsTextLabel = Label(window, textvariable=numActionsText, padx=10)
+        numActionsTextLabel = Label(consultTab, textvariable=numActionsText, padx=10)
         numActionsTextLabel.grid(row=10, column=0, columnspan=3, sticky="W")
 
         consultButton = Button(
-            window,
+            consultTab,
             text="Consultar",
             command=lambda: self.try_get(
                 backend=backend,

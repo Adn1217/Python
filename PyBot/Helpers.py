@@ -84,6 +84,7 @@ def dfTable(parent, dataList, layout="completa"):
 
     hScrollBar.config(command=tree.xview)
     vScrollBar.config(command=tree.yview)
+
     wantedCols = [
         "id",
         "actionType",
@@ -174,7 +175,7 @@ def dfTable(parent, dataList, layout="completa"):
         tree.column(col, anchor="center", minwidth=50, stretch=NO)
         tree.heading(col, text=col)
 
-    maxHeight = 28
+    maxHeight = 27
     tree.configure(height=maxHeight)
     # tree.column('#0', width=10) ## Auto additional column to show tree.
     for _, row in newDf.iterrows():
