@@ -320,10 +320,6 @@ class ConsultGUI:
         customFieldsTab = Frame(tabControl)  # Create a tab for custom field's
 
         gridNumCols = 10
-        for i in range(gridNumCols):
-            window.columnconfigure(
-                i, weight=1
-            )  # Tamaño de la columna i en relación con las demás.
 
         # window.rowconfigure(0, weight=1); #Tamaño de la fila cero en relación con las demás.
         # today = date.today()
