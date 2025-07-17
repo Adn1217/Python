@@ -2,8 +2,8 @@
 
 import threading
 from datetime import date, datetime
-from tkinter import (Button, Frame, Label, Radiobutton, StringVar, Tk,
-                     Toplevel, ttk)
+from tkinter import (Button, Checkbutton, Frame, Label, Radiobutton, StringVar,
+                     Tk, Toplevel, ttk)
 
 from Helpers import dfTable
 from tkcalendar import Calendar
@@ -345,7 +345,8 @@ class ConsultGUI:
         )
         selectDateButton.grid(row=1, column=2, rowspan=1, padx=10, pady=10, sticky="W")
 
-        selectedSource = StringVar(consultTab, "todos")  # Ambos por defecto
+        selectedSource = StringVar()  # Ambos por defecto
+        selectedSource.set("todos")  # Set default value
         radioButtonAgents = Radiobutton(
             consultTab, text="Agents", variable=selectedSource, value="agentes"
         )
@@ -375,9 +376,8 @@ class ConsultGUI:
         )
         vistaLabel.grid(row=2, column=4, columnspan=1, sticky="W")
 
-        selectedLayout = StringVar(
-            consultTab, self.selectedLayout
-        )  # Completa por defecto
+        selectedLayout = StringVar()
+        selectedLayout.set(self.selectedLayout)  # Completa por defecto
         radioButtonCompacta = Radiobutton(
             consultTab,
             text="Compacta",
@@ -455,6 +455,96 @@ class ConsultGUI:
         # while True:
 
         #     window.update()
+        #
+        # ------------------------------------Configuration TAB-------------------------------------
+        #
+        # Custom fields tab for selecting columns to display
+        # customFieldsTab.rowconfigure(1, weight=1)
+        # customFieldsTab.columnconfigure(0, weight=1)
+        colCheckLabelText = StringVar()
+        colCheckLabelText.set("Columnas disponibles: ")
+        colLabel = Label(
+            customFieldsTab,
+            textvariable=colCheckLabelText,
+            padx=10,
+            pady=20,
+            font=("Helvetica", 10, "bold"),
+        )
+        colLabel.grid(
+            row=1,
+            column=0,
+            columnspan=5,
+            sticky="NSEW",
+        )
+
+        possibleCols = [
+            "id",
+            "actionType",
+            "elementId",
+            "elementName",
+            "elementCompanyShortName",
+            "instructionTime",
+            "occurrenceTime",
+            "confirmationTime",
+            "causeStatus",
+            "consignmentId",
+            "causeChangeAvailability",
+            "newAvailability",
+            "elementCausingId",
+            "causeOperational",
+            "percentage",
+            "withPriorAuthorization",
+            "description",
+            "verificationNote",
+            "statusType",
+            "system",
+            "causeOrigin",
+            "causeDetailCno",
+            "additionalFieldsValue",
+            "espName",
+            "espElementId",
+            "unavailableActionId",
+            "subSystemUnavailableAction",
+            "cneZone",
+            "fuel",
+            "fuelName",
+            "fuelCEN",
+            "plantCEN",
+            "qualityScheme",
+            "source",
+            "dna",
+            "userValidator",
+            "configurationDesc",
+            "thermalStateId",
+            "descriptionAdditional",
+            "validate",  # "validate" is used to highlight rows that are validated.
+        ]
+
+        cont = 0
+        numCol = 0
+        colVarList = []
+        for col in possibleCols:
+
+            if cont % 10 == 0:
+                numCol = numCol + 1
+                cont = 0
+
+            cont = cont + 1
+            colVar = StringVar()  # Create a StringVar for each column
+            colVarList.append(colVar)
+            colVar.set(col)  # Default value for the checkbutton variable
+            colCheckButton = Checkbutton(
+                customFieldsTab,
+                text=col,
+                variable=colVarList[-1],
+                onvalue=col,
+                offvalue="",
+            )
+            # colCheckButton.select()  # Select the checkbutton by default
+            colCheckButton.grid(
+                row=cont + 2, column=1 + numCol, columnspan=1, sticky="W"
+            )
+
         window.mainloop()
 
     @property
