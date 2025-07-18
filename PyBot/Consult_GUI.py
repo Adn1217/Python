@@ -255,6 +255,54 @@ class ConsultGUI:
         self.update_table(frame, itemsList, self.selectedLayout)
         print("Se pulsó validar")
 
+    def save_custom_cols(self, **kwargs):
+        """Save the selected custom columns."""
+        customCols = kwargs["customCols"]
+        infoLabel = kwargs["infoLabel"]
+        selectedCols = [col.get() for col in customCols if col.get() != ""]
+        # print("Selected columns: ", selectedCols)
+        # with open("selected_columns.txt", "w") as f:
+        #     for col in selectedCols:
+        #         f.write(f"{col}\n")
+        infoLabel.set("Columnas seleccionadas guardadas correctamente.")
+
+    def load_custom_cols(self, **kwargs):
+        """Load the custom columns from a file or database."""
+        colVarList = kwargs["colVarList"]
+        infoLabel = kwargs["infoLabel"]
+        defaultCols = [
+            "id",
+            "actionType",
+            "elementId",
+            "elementName",
+            "elementCompanyShortName",
+            "instructionTime",
+            "occurrenceTime",
+            "confirmationTime",
+            "causeStatus",
+            "consignmentId",
+            "causeChangeAvailability",
+            "newAvailability",
+            "elementCausingId",
+            "causeOperational",
+            "percentage",
+            "withPriorAuthorization",
+            "description",
+            "verificationNote",
+            "statusType",
+            "system",
+            "causeOrigin",
+            "causeDetailCno",
+        ]
+
+        for colVar in colVarList:
+            if colVar.get() in defaultCols:
+                colVar.set(colVar.get())
+            else:
+                colVar.set("")
+
+        infoLabel.set("Columnas personalizadas cargadas correctamente.")
+
     def __init__(self, backend):
         # super().__init__();
         # self.withdraw(); #Hidden.
@@ -544,6 +592,36 @@ class ConsultGUI:
             colCheckButton.grid(
                 row=cont + 2, column=1 + numCol, columnspan=1, sticky="W"
             )
+
+        saveCustomColsButton = Button(
+            customFieldsTab,
+            text="Guardar",
+            command=lambda: self.save_custom_cols(
+                customCols=colVarList,
+                infoLabel=infoTextCustomCols,
+            ),
+        )
+        saveCustomColsButton.grid(
+            row=13, column=3, rowspan=1, padx=10, pady=10, sticky="W"
+        )
+
+        loadCustomColsButton = Button(
+            customFieldsTab,
+            text="Cargar",
+            command=lambda: self.load_custom_cols(
+                colVarList=colVarList, infoLabel=infoTextCustomCols
+            ),
+        )
+        loadCustomColsButton.grid(
+            row=13, column=4, rowspan=1, padx=10, pady=10, sticky="W"
+        )
+
+        infoTextCustomCols = StringVar()
+        infoTextCustomCols.set("")
+        infoLabelCustomCols = Label(
+            customFieldsTab, textvariable=infoTextCustomCols, padx=10
+        )
+        infoLabelCustomCols.grid(row=14, column=1, columnspan=3, sticky="W")
 
         window.mainloop()
 
