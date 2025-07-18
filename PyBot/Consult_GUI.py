@@ -602,7 +602,7 @@ class ConsultGUI:
             ),
         )
         saveCustomColsButton.grid(
-            row=13, column=3, rowspan=1, padx=10, pady=10, sticky="W"
+            row=13, column=3, rowspan=1, padx=10, pady=10, sticky="WE"
         )
 
         loadCustomColsButton = Button(
@@ -613,7 +613,7 @@ class ConsultGUI:
             ),
         )
         loadCustomColsButton.grid(
-            row=13, column=4, rowspan=1, padx=10, pady=10, sticky="W"
+            row=13, column=4, rowspan=1, padx=10, pady=10, sticky="WE"
         )
 
         infoTextCustomCols = StringVar()
