@@ -1,11 +1,15 @@
 """This module handles GUI operations for consulting a database using Tkinter."""
 
+import os
 import threading
 from datetime import date, datetime
 from tkinter import (Button, Checkbutton, Frame, Label, Radiobutton, StringVar,
                      Tk, Toplevel, ttk)
 
+from dotenv import load_dotenv
 from Helpers import dfTable
+from pymongo.mongo_client import MongoClient
+from pymongo.server_api import ServerApi
 from tkcalendar import Calendar
 
 
@@ -264,12 +268,41 @@ class ConsultGUI:
         # with open("selected_columns.txt", "w") as f:
         #     for col in selectedCols:
         #         f.write(f"{col}\n")
-        infoLabel.set("Columnas seleccionadas guardadas correctamente.")
+
+        # Create a new client and connect to the server
+        client = MongoClient(self.mongDBUri, server_api=ServerApi("1"))
+
+        # Access a DB (creates it if it doesn't exist) and Collections
+        doc = {"user": "50413", "columns": selectedCols}
+        # wConcern = {"writeConcern": {"w": "majority", "j": True, "wtimeout": 2000}}
+        if self.dbName and self.dbCollectionName:
+            db = client[self.dbName]
+            collection = db[self.dbCollectionName]
+            try:
+                # Send a ping to confirm a successful connection
+                ack = client.admin.command("ping")
+                if ack["ok"] == 1:
+                    print(
+                        "Pinged your deployment. You successfully connected to MongoDB!"
+                    )
+                    # query = {"user": "50413"}  # Example query to find the user
+                    # docs = collection.find(query)
+                    insertAck = collection.insert_one(doc)
+                    print(insertAck)
+                    if insertAck.acknowledged:
+                        print("Document inserted with id: ", insertAck.inserted_id)
+                    client.close()
+                    infoLabel.set("Columnas seleccionadas guardadas correctamente.")
+                else:
+                    print("Mongo DB deployment is not reachable (ack = 0).")
+            except Exception as e:
+                print(e)
 
     def load_custom_cols(self, **kwargs):
         """Load the custom columns from a file or database."""
         colVarList = kwargs["colVarList"]
         infoLabel = kwargs["infoLabel"]
+        # TODO: Change fixed defaultCols for the custom columns loaded from a file or database.
         defaultCols = [
             "id",
             "actionType",
@@ -293,21 +326,52 @@ class ConsultGUI:
             "system",
             "causeOrigin",
             "causeDetailCno",
+            "validate",  # "validate" is used to highlight rows that are validated.
         ]
-
+        # TODO: colVar is not saved. Is the current selection of columns, not the one saved.
         for colVar in colVarList:
             if colVar.get() in defaultCols:
                 colVar.set(colVar.get())
             else:
                 colVar.set("")
 
-        infoLabel.set("Columnas personalizadas cargadas correctamente.")
+        # Create a new client and connect to the server
+        client = MongoClient(self.mongDBUri, server_api=ServerApi("1"))
+
+        # Access a DB (creates it if it doesn't exist) and Collections
+
+        if self.dbName and self.dbCollectionName:
+            db = client[self.dbName]
+            collection = db[self.dbCollectionName]
+            try:
+                # Send a ping to confirm a successful connection
+                ack = client.admin.command("ping")
+                if ack["ok"] == 1:
+                    print(
+                        "Pinged your deployment. You successfully connected to MongoDB!"
+                    )
+                    query = {"user": "50412"}  # Example query to find the user
+                    docs = collection.find(query)
+                    for doc in docs:
+                        print("Document found: ", doc)
+                    client.close()
+                    infoLabel.set("Columnas personalizadas cargadas correctamente.")
+                else:
+                    print("Mongo DB deployment is not reachable (ack = 0).")
+            except Exception as e:
+                print(e)
 
     def __init__(self, backend):
+        ##TODO: Control Environment variables not set.
         # super().__init__();
         # self.withdraw(); #Hidden.
+        load_dotenv()
         self.selectedDate = date.today()
         self.selectedLayout = "completa"  # Default layout
+        self.dbName = os.getenv("MONGODB_DB_NAME")
+        self.dbCollectionName = os.getenv("MONGODB_COL_COLLECTION_NAME")
+        self.mongDBUri = os.getenv("MONGODB_URL")
+        print("Mongo DB URI: ", self.mongDBUri)
 
         wantedCols = [
             "id",
