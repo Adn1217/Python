@@ -111,7 +111,9 @@ class ConsultGUI:
         """Update the table with received data."""
         # print('Numero de elementos: ', len(data));
         # df = pd.DataFrame(self.dataList);
-        [table, xscrollBar, yscrollBar] = dfTable(parent, data, selectedLayout)
+        [table, xscrollBar, yscrollBar] = dfTable(
+            parent, data, self.selectedCols, selectedLayout
+        )
         # print('Table list: ', self.dataList);
         table.grid(row=4, column=0, rowspan=1, padx=10, pady=10, sticky="EW")
         xscrollBar.grid(row=5, column=0, rowspan=1, sticky="EW")
@@ -167,6 +169,15 @@ class ConsultGUI:
             self.selectedLayout = selectedLayout
             self.update_table(parent, self.dataList, self.selectedLayout)
             # print("Radio button changed")
+
+    def on_checkBox_click(self):
+        """Callback function for checkbox click."""
+        # print("Checkbox clicked")
+        self.selectedCols = [
+            colVar.get() for colVar in self.colVarList if colVar.get() != ""
+        ]
+        print("Selected columns: ", self.selectedCols)
+        # self.update_table(frame, self.dataList, self.selectedLayout)
 
     def validate(self, frame, dataList):
         """Validate operational records."""
@@ -737,6 +748,7 @@ class ConsultGUI:
                 variable=self.colVarList[-1],  # Last one = colVar
                 onvalue=col,
                 offvalue="",
+                command=self.on_checkBox_click,
             )
             # colCheckButton.select()  # Select the checkbutton by default
             colCheckButton.grid(

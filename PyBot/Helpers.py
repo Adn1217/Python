@@ -62,7 +62,7 @@ def formatList(dataList):
     return dataList
 
 
-def dfTable(parent, dataList, layout="completa"):
+def dfTable(parent, dataList, selectedCols, layout="completa"):
     """Create a DataFrame table in a Tkinter window using ttk.Treeview and pandas."""
 
     # print('dataList: ', dataList);
@@ -129,36 +129,43 @@ def dfTable(parent, dataList, layout="completa"):
     ]
 
     if layout == "compacta":
+        if len(wantedCols) != len(selectedCols):
+            if "source" not in selectedCols:
+                selectedCols.append("source")
+            if "validate" not in selectedCols:
+                selectedCols.append("validate")
 
-        wantedCols = [
-            "actionType",
-            "elementName",
-            "elementCompanyShortName",
-            "instructionTime",
-            "occurrenceTime",
-            "confirmationTime",
-            "causeStatus",
-            "consignmentId",
-            "newAvailability",
-            "elementCausingId",
-            "causeOperational",
-            "withPriorAuthorization",
-            "statusType",
-            "system",
-            "causeOrigin",
-            "unavailableActionId",
-            "subSystemUnavailableAction",
-            "cneZone",
-            "fuel",
-            "fuelName",
-            "fuelCEN",
-            "plantCEN",
-            "qualityScheme",
-            "source",
-            "configurationDesc",
-            "thermalStateId",
-            "validate",  # "validate" is used to highlight rows that are validated.
-        ]
+            wantedCols = selectedCols
+        else:
+            wantedCols = [
+                "actionType",
+                "elementName",
+                "elementCompanyShortName",
+                "instructionTime",
+                "occurrenceTime",
+                "confirmationTime",
+                "causeStatus",
+                "consignmentId",
+                "newAvailability",
+                "elementCausingId",
+                "causeOperational",
+                "withPriorAuthorization",
+                "statusType",
+                "system",
+                "causeOrigin",
+                "unavailableActionId",
+                "subSystemUnavailableAction",
+                "cneZone",
+                "fuel",
+                "fuelName",
+                "fuelCEN",
+                "plantCEN",
+                "qualityScheme",
+                "source",
+                "configurationDesc",
+                "thermalStateId",
+                "validate",  # "validate" is used to highlight rows that are validated.
+            ]
 
     sourceIndex = wantedCols.index("source")
     validateIndex = wantedCols.index("validate")
