@@ -14,6 +14,7 @@ class App:
 
     # backend = backEnd('dev', 8000)
     def __init__(self, backend):
+        self.grantedUser = ""
         self.isGranted = False
         # self._backend = backend
         self.backend = backend
@@ -34,6 +35,16 @@ class App:
         self._backend = value
 
     @property
+    def grantedUser(self):
+        """Property to get the granted user."""
+        return self._grantedUser
+
+    @grantedUser.setter
+    def grantedUser(self, user):
+        """Setter for the granted user."""
+        self._grantedUser = user
+
+    @property
     def isGranted(self):
         """Property to get the isGranted status."""
         return self._isGranted
@@ -45,11 +56,16 @@ class App:
 
     def login_gui(self):
         """Initialize the login GUI and set up the backend."""
-        LogGUI(self.backend, self.update_is_granted)
+        LogGUI(self.backend, self.update_granted_user, self.update_is_granted)
 
     def consult_gui(self):
         """Initialize the consult GUI with the backend."""
-        ConsultGUI(self.backend)
+        ConsultGUI(self.backend, self.grantedUser)
+
+    def update_granted_user(self, grantedUser):
+        """Update the granted user and print the user for debug."""
+        self.grantedUser = grantedUser
+        print("Granted User: ", self.grantedUser)
 
     def update_is_granted(self, isGranted):
         """Update the isGranted status and print the status for debug."""
