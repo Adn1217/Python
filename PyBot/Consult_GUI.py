@@ -320,42 +320,6 @@ class ConsultGUI:
             except Exception as e:
                 print(e)
 
-    def load_custom_cols(self, **kwargs):
-        """Load the custom columns from a file or database."""
-        colVarList = kwargs["colVarList"]
-        infoLabel = kwargs["infoLabel"]
-        # TODO: Change fixed defaultCols for the custom columns loaded from a file or database.
-        defaultCols = [
-            "id",
-            "actionType",
-            "elementId",
-            "elementName",
-            "elementCompanyShortName",
-            "instructionTime",
-            "occurrenceTime",
-            "confirmationTime",
-            "causeStatus",
-            "consignmentId",
-            "causeChangeAvailability",
-            "newAvailability",
-            "elementCausingId",
-            "causeOperational",
-            "percentage",
-            "withPriorAuthorization",
-            "description",
-            "verificationNote",
-            "statusType",
-            "system",
-            "causeOrigin",
-            "causeDetailCno",
-            "validate",  # "validate" is used to highlight rows that are validated.
-        ]
-        # TODO: colVar is not saved. Is the current selection of columns, not the one saved.
-        for colVar in colVarList:
-            if colVar.get() in defaultCols:
-                colVar.set(colVar.get())
-            else:
-                colVar.set("")
     def update_custom_cols(self, client, collection, doc, infoLabel):
         """Save the custom columns document to the collection."""
         try:
@@ -382,10 +346,9 @@ class ConsultGUI:
         except Exception as e:
             print(e)
 
-        # Create a new client and connect to the server
-        client = MongoClient(self.mongDBUri, server_api=ServerApi("1"))
+    def try_load_custom_cols(self, user, infoLabel):
 
-        # Access a DB (creates it if it doesn't exist) and Collections
+        client = MongoClient(self.mongDBUri, server_api=ServerApi("1"))
 
         if self.dbName and self.dbCollectionName:
             db = client[self.dbName]
@@ -397,16 +360,90 @@ class ConsultGUI:
                     print(
                         "Pinged your deployment. You successfully connected to MongoDB!"
                     )
-                    query = {"user": "50412"}  # Example query to find the user
-                    docs = collection.find(query)
-                    for doc in docs:
-                        print("Document found: ", doc)
-                    client.close()
-                    infoLabel.set("Columnas personalizadas cargadas correctamente.")
+                    query = {"user": user}  # Example query to find the user
+                    doc = collection.find_one(query)
+                    savedCols = doc["columns"] if doc and "columns" in doc else []
+                    if doc is None:
+                        window = Toplevel()
+                        window.title("Usuario no encontrado")
+                        # window.geometry("600x400");
+                        info = f"El usuario {user} NO tiene columnas personalizadas guardadas.\n¿Desea guardar las actualmente seleccionadas?"
+                        confirmationLabel = Label(window, text=info, padx=10)
+                        confirmationLabel.grid(row=0, column=0, columnspan=2)
+                        confirmButton = Button(
+                            window,
+                            text="Aceptar",
+                            command=lambda: [
+                                self.save_custom_cols(
+                                    client, collection, doc, infoLabel
+                                ),
+                                window.destroy(),
+                            ],
+                        )
+                        cancelButton = Button(
+                            window,
+                            text="Cancelar",
+                            command=window.destroy,
+                        )
+
+                        confirmButton.grid(row=3, column=0, rowspan=1, padx=10, pady=10)
+                        cancelButton.grid(row=3, column=1, rowspan=1, padx=10, pady=10)
+                    else:
+                        self.load_custom_cols(savedCols=savedCols, infoLabel=infoLabel)
                 else:
+                    self.load_custom_cols(infoLabel=infoLabel)
                     print("Mongo DB deployment is not reachable (ack = 0).")
             except Exception as e:
                 print(e)
+
+    def load_custom_cols(self, infoLabel, **kwargs):
+        """Load the custom columns from a file or database."""
+        # colVarList = kwargs["colVarList"]
+        colVarList = self.colVarList
+        # infoLabel = kwargs["infoLabel"]
+        savedCols = kwargs.get("savedCols", [])
+        if len(savedCols) == 0:
+            # TODO: Change fixed defaultCols for the custom columns loaded from a file or database.
+            defaultCols = [
+                "id",
+                "actionType",
+                "elementId",
+                "elementName",
+                "elementCompanyShortName",
+                "instructionTime",
+                "occurrenceTime",
+                "confirmationTime",
+                "causeStatus",
+                "consignmentId",
+                "causeChangeAvailability",
+                "newAvailability",
+                "elementCausingId",
+                "causeOperational",
+                "percentage",
+                "withPriorAuthorization",
+                "description",
+                "verificationNote",
+                "statusType",
+                "system",
+                "causeOrigin",
+                "causeDetailCno",
+                "validate",  # "validate" is used to highlight rows that are validated.
+            ]
+            savedCols = defaultCols
+            infoLabel.set(
+                "Usuario sin columnas personalizadas guardadas. Se cargaron columnas por defecto."
+            )
+            self.selectedCols = savedCols
+        else:
+            infoLabel.set("Columnas personalizadas cargadas correctamente.")
+            self.selectedCols = savedCols
+
+        # TODO: colVar is not saved. Is the current selection of columns, not the one saved.
+        for colVar in colVarList:
+            if colVar.get() in savedCols:
+                colVar.set(colVar.get())
+            else:
+                colVar.set("")
 
     def __init__(self, backend, grantedUser):
 
@@ -722,8 +759,8 @@ class ConsultGUI:
         loadCustomColsButton = Button(
             customFieldsTab,
             text="Cargar",
-            command=lambda: self.load_custom_cols(
-                colVarList=colVarList, infoLabel=infoTextCustomCols
+            command=lambda: self.try_load_custom_cols(
+                user=self.grantedUser, infoLabel=infoTextCustomCols
             ),
         )
         loadCustomColsButton.grid(
@@ -736,6 +773,9 @@ class ConsultGUI:
             customFieldsTab, textvariable=infoTextCustomCols, padx=10
         )
         infoLabelCustomCols.grid(row=14, column=1, columnspan=3, sticky="W")
+
+
+        self.try_load_custom_cols(user=self.grantedUser, infoLabel=infoTextCustomCols)
 
         window.mainloop()
 
