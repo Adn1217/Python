@@ -1,0 +1,11 @@
+cndItem["elementId"] == agentItem["elementId"] 
+cndItem["actionType"] == agentItem["actionType"]
+cndItem["causeStatus"] == agentItem["causeStatus"]
+cndItem["newAvailability"] == agentItem["newAvailability"]
+cndItem["causeOperational"] == agentItem["causeOperational"]
+cndItem["withPriorAuthorization"] == agentItem["withPriorAuthorization"]
+agentItem["elementName"] cndItem["elementName"]
+instMinsDiff:
+ocurrMinsDiff:
+confMinsDiff:
+

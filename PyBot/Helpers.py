@@ -62,7 +62,7 @@ def formatList(dataList):
     return dataList
 
 
-def dfTable(parent, dataList, layout="completa"):
+def dfTable(parent, dataList, selectedCols, layout="completa"):
     """Create a DataFrame table in a Tkinter window using ttk.Treeview and pandas."""
 
     # print('dataList: ', dataList);
@@ -84,6 +84,7 @@ def dfTable(parent, dataList, layout="completa"):
 
     hScrollBar.config(command=tree.xview)
     vScrollBar.config(command=tree.yview)
+
     wantedCols = [
         "id",
         "actionType",
@@ -128,36 +129,43 @@ def dfTable(parent, dataList, layout="completa"):
     ]
 
     if layout == "compacta":
+        if len(wantedCols) != len(selectedCols):
+            if "source" not in selectedCols:
+                selectedCols.append("source")
+            if "validate" not in selectedCols:
+                selectedCols.append("validate")
 
-        wantedCols = [
-            "actionType",
-            "elementName",
-            "elementCompanyShortName",
-            "instructionTime",
-            "occurrenceTime",
-            "confirmationTime",
-            "causeStatus",
-            "consignmentId",
-            "newAvailability",
-            "elementCausingId",
-            "causeOperational",
-            "withPriorAuthorization",
-            "statusType",
-            "system",
-            "causeOrigin",
-            "unavailableActionId",
-            "subSystemUnavailableAction",
-            "cneZone",
-            "fuel",
-            "fuelName",
-            "fuelCEN",
-            "plantCEN",
-            "qualityScheme",
-            "source",
-            "configurationDesc",
-            "thermalStateId",
-            "validate",  # "validate" is used to highlight rows that are validated.
-        ]
+            wantedCols = selectedCols
+        else:
+            wantedCols = [
+                "actionType",
+                "elementName",
+                "elementCompanyShortName",
+                "instructionTime",
+                "occurrenceTime",
+                "confirmationTime",
+                "causeStatus",
+                "consignmentId",
+                "newAvailability",
+                "elementCausingId",
+                "causeOperational",
+                "withPriorAuthorization",
+                "statusType",
+                "system",
+                "causeOrigin",
+                "unavailableActionId",
+                "subSystemUnavailableAction",
+                "cneZone",
+                "fuel",
+                "fuelName",
+                "fuelCEN",
+                "plantCEN",
+                "qualityScheme",
+                "source",
+                "configurationDesc",
+                "thermalStateId",
+                "validate",  # "validate" is used to highlight rows that are validated.
+            ]
 
     sourceIndex = wantedCols.index("source")
     validateIndex = wantedCols.index("validate")
@@ -174,7 +182,7 @@ def dfTable(parent, dataList, layout="completa"):
         tree.column(col, anchor="center", minwidth=50, stretch=NO)
         tree.heading(col, text=col)
 
-    maxHeight = 28
+    maxHeight = 27
     tree.configure(height=maxHeight)
     # tree.column('#0', width=10) ## Auto additional column to show tree.
     for _, row in newDf.iterrows():
