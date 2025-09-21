@@ -449,7 +449,6 @@ class ConsultGUI:
             infoLabel.set("Columnas personalizadas cargadas correctamente.")
             self.selectedCols = savedCols
 
-        # TODO: colVar is not saved. Is the current selection of columns, not the one saved.
         for colVar in colVarList:
             if colVar.get() in savedCols:
                 colVar.set(colVar.get())
@@ -817,6 +816,8 @@ class ConsultGUI:
     def dataList(self, value):
         """Setter for the backend attribute."""
         self._dataList = value
+
+    ##TODO: Remove grantedUser property and use directly self._grantedUser with inheritance in constructor.
 
     @property
     def grantedUser(self):
