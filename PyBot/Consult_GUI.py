@@ -786,6 +786,13 @@ class ConsultGUI:
         )
         infoLabelCustomCols.grid(row=14, column=1, columnspan=3, sticky="W")
 
+        if (
+            (self.mongDBUri is None)
+            or (self.dbName is None)
+            or (self.dbCollectionName is None)
+        ):
+            print("Mongo DB environment variables not set.")
+            infoTextCustomCols.set("Sin conexión a la base de datos.")
 
         self.try_load_custom_cols(user=self.grantedUser, infoLabel=infoTextCustomCols)
 
