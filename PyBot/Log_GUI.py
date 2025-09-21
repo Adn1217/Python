@@ -11,14 +11,22 @@ class LogGUI:
     ):  # log, updateIsGranted, userEntry, pswEntry, infoText
         """Try to log in with the provided credentials."""
         log = kwargs["log"]
+        updateGrantedUser = kwargs["updateGrantedUser"]
         updateIsGranted = kwargs["updateIsGranted"]
         userEntry = kwargs["userEntry"]
         pswEntry = kwargs["pswEntry"]
         infoText = kwargs["infoText"]
+        enteredUser = userEntry.get()
 
         textInfo = log.log_in(userEntry, pswEntry)
         # textInfo ='';
+        # print("updateGrantedUser: ", updateGrantedUser)
+        # print("updateIsGranted: ", updateIsGranted)
         if textInfo == "":
+            if enteredUser == "":
+                updateGrantedUser("usuarioPrueba")
+            else:
+                updateGrantedUser(enteredUser)
             window.destroy()
             updateIsGranted(True)
         else:
@@ -29,7 +37,7 @@ class LogGUI:
         updateGranted(False)
         window.quit()
 
-    def __init__(self, log, updateIsGranted):
+    def __init__(self, log, updateGrantedUser, updateIsGranted):
         # super().__init__();
 
         window = Tk()
@@ -61,6 +69,7 @@ class LogGUI:
             command=lambda: self.try_login(
                 window,
                 log=log,
+                updateGrantedUser=updateGrantedUser,
                 updateIsGranted=updateIsGranted,
                 userEntry=userEntry,
                 pswEntry=pswEntry,

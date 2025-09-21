@@ -259,8 +259,9 @@ class ConsultGUI:
         self.update_table(frame, itemsList, self.selectedLayout)
         print("Se pulsó validar")
 
-    def save_custom_cols(self, **kwargs):
-        """Save the selected custom columns."""
+    def try_save_custom_cols(self, **kwargs):
+        """Controller of saving process of the selected custom columns."""
+        user = kwargs["user"]
         customCols = kwargs["customCols"]
         infoLabel = kwargs["infoLabel"]
         selectedCols = [col.get() for col in customCols if col.get() != ""]
@@ -273,7 +274,7 @@ class ConsultGUI:
         client = MongoClient(self.mongDBUri, server_api=ServerApi("1"))
 
         # Access a DB (creates it if it doesn't exist) and Collections
-        doc = {"user": "50413", "columns": selectedCols}
+        doc = {"user": user, "columns": selectedCols}
         # wConcern = {"writeConcern": {"w": "majority", "j": True, "wtimeout": 2000}}
         if self.dbName and self.dbCollectionName:
             db = client[self.dbName]
@@ -285,14 +286,35 @@ class ConsultGUI:
                     print(
                         "Pinged your deployment. You successfully connected to MongoDB!"
                     )
-                    # query = {"user": "50413"}  # Example query to find the user
-                    # docs = collection.find(query)
-                    insertAck = collection.insert_one(doc)
-                    print(insertAck)
-                    if insertAck.acknowledged:
-                        print("Document inserted with id: ", insertAck.inserted_id)
-                    client.close()
-                    infoLabel.set("Columnas seleccionadas guardadas correctamente.")
+                    query = {"user": user}  # Example query to find the user
+                    numDocs = collection.count_documents(query)
+                    if numDocs > 0:
+                        window = Toplevel()
+                        window.title("Confirmar")
+                        # window.geometry("600x400");
+                        info = f"El usuario {user} ya tiene columnas personalizadas guardadas.\n¿Desea sobrescribirlas?"
+                        confirmationLabel = Label(window, text=info, padx=10)
+                        confirmationLabel.grid(row=0, column=0, columnspan=2)
+                        confirmButton = Button(
+                            window,
+                            text="Aceptar",
+                            command=lambda: [
+                                window.destroy(),
+                                self.update_custom_cols(
+                                    client, collection, doc, infoLabel
+                                ),
+                            ],
+                        )
+                        cancelButton = Button(
+                            window,
+                            text="Cancelar",
+                            command=window.destroy,
+                        )
+
+                        confirmButton.grid(row=3, column=0, rowspan=1, padx=10, pady=10)
+                        cancelButton.grid(row=3, column=1, rowspan=1, padx=10, pady=10)
+                    else:
+                        self.save_custom_cols(client, collection, doc, infoLabel)
                 else:
                     print("Mongo DB deployment is not reachable (ack = 0).")
             except Exception as e:
@@ -334,6 +356,31 @@ class ConsultGUI:
                 colVar.set(colVar.get())
             else:
                 colVar.set("")
+    def update_custom_cols(self, client, collection, doc, infoLabel):
+        """Save the custom columns document to the collection."""
+        try:
+            updateAck = collection.update_one(
+                {"user": doc["user"]}, {"$set": {"columns": doc["columns"]}}
+            )
+            # print("updateAck: ", updateAck)
+            if updateAck.acknowledged:
+                print("Documents updated: ", updateAck.modified_count)
+                infoLabel.set("Columnas seleccionadas guardadas correctamente.")
+            client.close()
+        except Exception as e:
+            print(e)
+
+    def save_custom_cols(self, client, collection, doc, infoLabel):
+        """Save the custom columns document to the collection."""
+        try:
+            insertAck = collection.insert_one(doc)
+            print(insertAck)
+            if insertAck.acknowledged:
+                print("Document inserted with id: ", insertAck.inserted_id)
+            client.close()
+            infoLabel.set("Columnas seleccionadas guardadas correctamente.")
+        except Exception as e:
+            print(e)
 
         # Create a new client and connect to the server
         client = MongoClient(self.mongDBUri, server_api=ServerApi("1"))
@@ -361,12 +408,14 @@ class ConsultGUI:
             except Exception as e:
                 print(e)
 
-    def __init__(self, backend):
-        ##TODO: Control Environment variables not set.
+    def __init__(self, backend, grantedUser):
+
         # super().__init__();
         # self.withdraw(); #Hidden.
         load_dotenv()
+        self.grantedUser = grantedUser
         self.selectedDate = date.today()
+        self.colVarList = []
         self.selectedLayout = "completa"  # Default layout
         self.dbName = os.getenv("MONGODB_DB_NAME")
         self.dbCollectionName = os.getenv("MONGODB_COL_COLLECTION_NAME")
@@ -414,6 +463,7 @@ class ConsultGUI:
             "thermalStateId",
             "descriptionAdditional",
         ]
+        self.selectedCols = wantedCols.copy()
         dataListDict = {}
         for header in wantedCols:
             dataListDict[header] = ""
@@ -634,7 +684,6 @@ class ConsultGUI:
 
         cont = 0
         numCol = 0
-        colVarList = []
         for col in possibleCols:
 
             if cont % 10 == 0:
@@ -643,12 +692,12 @@ class ConsultGUI:
 
             cont = cont + 1
             colVar = StringVar()  # Create a StringVar for each column
-            colVarList.append(colVar)
+            self.colVarList.append(colVar)
             colVar.set(col)  # Default value for the checkbutton variable
             colCheckButton = Checkbutton(
                 customFieldsTab,
                 text=col,
-                variable=colVarList[-1],
+                variable=self.colVarList[-1],  # Last one = colVar
                 onvalue=col,
                 offvalue="",
             )
@@ -660,8 +709,9 @@ class ConsultGUI:
         saveCustomColsButton = Button(
             customFieldsTab,
             text="Guardar",
-            command=lambda: self.save_custom_cols(
-                customCols=colVarList,
+            command=lambda: self.try_save_custom_cols(
+                user=self.grantedUser,
+                customCols=self.colVarList,
                 infoLabel=infoTextCustomCols,
             ),
         )
@@ -708,6 +758,16 @@ class ConsultGUI:
     def dataList(self, value):
         """Setter for the backend attribute."""
         self._dataList = value
+
+    @property
+    def grantedUser(self):
+        """Property to get the granted user."""
+        return self._grantedUser
+
+    @grantedUser.setter
+    def grantedUser(self, user):
+        """Setter for the granted user."""
+        self._grantedUser = user
 
     @property
     def selectedDate(self):
