@@ -830,16 +830,6 @@ class ConsultGUI:
         self._grantedUser = user
 
     @property
-    def grantedUser(self):
-        """Property to get the granted user."""
-        return self._grantedUser
-
-    @grantedUser.setter
-    def grantedUser(self, user):
-        """Setter for the granted user."""
-        self._grantedUser = user
-
-    @property
     def selectedDate(self):
         """Property to get the selectedDate attribute."""
         return self._selectedDate
