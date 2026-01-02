@@ -190,23 +190,26 @@ def dfTable(parent, dataList, selectedCols, layout="completa"):
     maxHeight = 25
     tree.configure(height=maxHeight)
     # tree.column('#0', width=10) ## Auto additional column to show tree.
+    tagName = ""
     for _, row in newDf.iterrows():
 
         # print('Fila: ', list(row));
         # print('Campo: ', list(row)[0]);
         # print('Campo: ', list(row)[sourceIndex]);
-        if (len(list(row)) == len(wantedCols)) and list(row)[validateIndex]:
-            tree.insert("", END, values=list(row), tags="Validate")
-        elif list(row)[sourceIndex] == "Agente" or list(row)[0] == "":
-            tree.insert("", END, values=list(row), tags="Agent")
+        if (list(row)[sourceIndex] == "Agente" or list(row)[0] == ""):
+            tagName = "Agent"
         elif list(row)[sourceIndex] == "CND":
-            tree.insert("", END, values=list(row), tags="CND")
+            tagName = "CND"
         else:
-            tree.insert("", END, values=list(row), tags="NoSource")
-        
-        if (len(list(row)) == len(wantedCols)) and list(row)[errorIndex]:
-            tree.insert("", END, values=list(row), tags="error")
-
+            tagName = "NoSource"
+            
+        if (len(list(row)) == len(wantedCols)):
+            if list(row)[validateIndex]:
+                tagName = "Validate"
+            elif list(row)[errorIndex]:
+                tagName = "error"
+        tree.insert("", END, values=list(row), tags=tagName)
+        tagName = ""
         tree.tag_configure("CND", background="#eeeeee")  # Light grey
         tree.tag_configure("NoSource", background="darkgrey")
         tree.tag_configure("Validate", background="lightgreen")

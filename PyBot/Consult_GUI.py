@@ -206,15 +206,9 @@ class ConsultGUI:
                 if (cndItem["instructionTime"] == "" or cndItem["occurrenceTime"] == "" or cndItem["confirmationTime"] == "") and (cndItem["statusType"] == "Validada"):
                     idsWithError.extend([cndItem["id"]])
                     cndItemWitherror = True
-                    msg = "Existen registros validados con tiempos faltantes. Se resaltan en rojo. Revisar."
-                    color = 'red'
-                    self.update_infolabel(infoLabel, infoText, color, msg)
                 if (agentItem["instructionTime"] == "" or agentItem["occurrenceTime"] == "" or agentItem["confirmationTime"] == "") and (agentItem["statusType"] == "Validada"):
                     idsWithError.extend([agentItemId])
                     agentItemWitherror = True
-                    msg = "Existen registros validados con tiempos faltantes. Se resaltan en rojo. Revisar."
-                    color = 'red'
-                    self.update_infolabel(infoLabel, infoText, color, msg)
                 if (
                     not cndItemWitherror and not agentItemWitherror and
                     cndItem["elementId"] == agentItem["elementId"]
@@ -287,6 +281,11 @@ class ConsultGUI:
                 item["error"] = True
             else:
                 item["error"] = False
+
+        if len(idsWithError) > 0:
+            msg = "Existen registros validados con tiempos faltantes. Se resaltan en rojo. Revisar."
+            color = 'red'
+            self.update_infolabel(infoLabel, infoText, color, msg)
 
         self.update_table(frame, itemsList, self.selectedLayout)
         print("Se pulsó validar")
