@@ -126,6 +126,7 @@ def dfTable(parent, dataList, selectedCols, layout="completa"):
         "thermalStateId",
         "descriptionAdditional",
         "validate",  # "validate" is used to highlight rows that are validated.
+        "error", # "error" is used to highlight rows that have errors.
     ]
 
     if layout == "compacta":
@@ -134,7 +135,9 @@ def dfTable(parent, dataList, selectedCols, layout="completa"):
                 selectedCols.append("source")
             if "validate" not in selectedCols:
                 selectedCols.append("validate")
-
+            if "error" not in selectedCols:
+                selectedCols.append("error")
+                
             wantedCols = selectedCols
         else:
             wantedCols = [
@@ -165,10 +168,12 @@ def dfTable(parent, dataList, selectedCols, layout="completa"):
                 "configurationDesc",
                 "thermalStateId",
                 "validate",  # "validate" is used to highlight rows that are validated.
+                "error", # "error" is used to highlight rows that have errors.
             ]
 
     sourceIndex = wantedCols.index("source")
     validateIndex = wantedCols.index("validate")
+    errorIndex = wantedCols.index("error")
     colsExisting = []
     for col in df.columns:
         if col in wantedCols:
@@ -182,7 +187,7 @@ def dfTable(parent, dataList, selectedCols, layout="completa"):
         tree.column(col, anchor="center", minwidth=50, stretch=NO)
         tree.heading(col, text=col)
 
-    maxHeight = 27
+    maxHeight = 25
     tree.configure(height=maxHeight)
     # tree.column('#0', width=10) ## Auto additional column to show tree.
     for _, row in newDf.iterrows():
@@ -198,10 +203,15 @@ def dfTable(parent, dataList, selectedCols, layout="completa"):
             tree.insert("", END, values=list(row), tags="CND")
         else:
             tree.insert("", END, values=list(row), tags="NoSource")
+        
+        if (len(list(row)) == len(wantedCols)) and list(row)[errorIndex]:
+            tree.insert("", END, values=list(row), tags="error")
 
         tree.tag_configure("CND", background="#eeeeee")  # Light grey
         tree.tag_configure("NoSource", background="darkgrey")
-        tree.tag_configure("Validate", background="lightgreen")  ##84de80
+        tree.tag_configure("Validate", background="lightgreen")
+        tree.tag_configure("error", background="red")  
+        ##84de80
         # print('newDf.iterrows: ', newDf.iterrows());
         # tree.pack(expand=True, fill="both")
 

@@ -179,11 +179,13 @@ class ConsultGUI:
         print("Selected columns: ", self.selectedCols)
         # self.update_table(frame, self.dataList, self.selectedLayout)
 
-    def validate(self, frame, dataList):
+    def validate(self, frame, infoText, infoLabel, dataList):
         """Validate operational records."""
         agentsDataList = []
         cndDataList = []
         idsToValidate = []
+        idsWithError = []
+    
 
         for item in dataList:
             if item["source"] == "Agente":
@@ -197,9 +199,24 @@ class ConsultGUI:
             # "causeChangeAvailability",
             # "elementCausingId",
             agentItemId = agentItem["id"]
+            cndItemWitherror = False
+            agentItemWitherror = False
             # if agentItem["statusType"] in ["Ejecutada", "Editada"]:
             for cndItem in cndDataList:
+                if (cndItem["instructionTime"] == "" or cndItem["occurrenceTime"] == "" or cndItem["confirmationTime"] == "") and (cndItem["statusType"] == "Validada"):
+                    idsWithError.extend([cndItem["id"]])
+                    cndItemWitherror = True
+                    msg = "Existen registros validados con tiempos faltantes. Se resaltan en rojo. Revisar."
+                    color = 'red'
+                    self.update_infolabel(infoLabel, infoText, color, msg)
+                if (agentItem["instructionTime"] == "" or agentItem["occurrenceTime"] == "" or agentItem["confirmationTime"] == "") and (agentItem["statusType"] == "Validada"):
+                    idsWithError.extend([agentItemId])
+                    agentItemWitherror = True
+                    msg = "Existen registros validados con tiempos faltantes. Se resaltan en rojo. Revisar."
+                    color = 'red'
+                    self.update_infolabel(infoLabel, infoText, color, msg)
                 if (
+                    not cndItemWitherror and not agentItemWitherror and
                     cndItem["elementId"] == agentItem["elementId"]
                     and cndItem["actionType"] == agentItem["actionType"]
                     and (cndItem["causeStatus"] == agentItem["causeStatus"])
@@ -266,6 +283,10 @@ class ConsultGUI:
                 item["validate"] = True
             else:
                 item["validate"] = False
+            if item["id"] in idsWithError:
+                item["error"] = True
+            else:
+                item["error"] = False
 
         self.update_table(frame, itemsList, self.selectedLayout)
         print("Se pulsó validar")
@@ -588,7 +609,7 @@ class ConsultGUI:
         selectedLayout = StringVar()
         selectedLayout.set(self.selectedLayout)  # Completa por defecto
         radioButtonCompacta = Radiobutton(
-            consultTab,
+           consultTab,
             text="Compacta",
             variable=selectedLayout,
             value="compacta",
@@ -598,7 +619,7 @@ class ConsultGUI:
         radioButtonCompleta = Radiobutton(
             consultTab,
             text="Completa",
-            variable=selectedLayout,
+           variable=selectedLayout,
             value="completa",
             command=lambda: self.on_radio_change(frame, selectedLayout.get()),
         )
@@ -611,22 +632,22 @@ class ConsultGUI:
             row=2, column=6, columnspan=1, rowspan=1, padx=10, pady=10, sticky="W"
         )
 
-        validateButton = Button(
-            consultTab,
-            text="Validar",
-            state="disabled",
-            command=lambda: self.validate(frame, self.dataList),
-        )
-        validateButton.grid(row=2, column=7, rowspan=1, padx=10, pady=10, sticky="W")
-
         infoText = StringVar()
         infoText.set("")
         infoLabel = Label(consultTab, textvariable=infoText, padx=10, fg="red")
         infoLabel.grid(row=3, column=0, columnspan=3, sticky="W")
 
-        frame = Frame(consultTab, width=1500, height=600)
+        validateButton = Button(
+            consultTab,
+            text="Validar",
+            state="disabled",
+            command=lambda: self.validate(frame, infoText, infoLabel, self.dataList),
+        )
+        validateButton.grid(row=2, column=7, rowspan=1, padx=10, pady=10, sticky="W")
+
+        frame = Frame(consultTab, width=1200, height=550)
         frame.grid(
-            row=4, column=0, columnspan=9, rowspan=1, padx=10, pady=10, sticky="W"
+            row=4, column=0, columnspan=10, rowspan=1, padx=10, pady=5, sticky="W"
         )
 
         frame.columnconfigure(
