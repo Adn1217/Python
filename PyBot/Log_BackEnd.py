@@ -150,6 +150,11 @@ class BackEnd:
 
         if "error" in token.keys():
             infoText = token["error"]
+            print(token)
+            if "StatusCode" in token['error']:
+                error = token['error']
+                if error["StatusCode"] != 200:
+                    infoText = f"Error de autenticación: {error['StatusCode']}   - {error['Message']}"
         # self.getData(Token, date)
         # headers = {"Authorization": "Bearer MYREALLYLONGTOKENIGOT"}
         # text1.delete("1.0", END);
