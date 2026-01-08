@@ -113,7 +113,9 @@ class BackEnd:
                 "actionTypeIds": [],
                 "originPanelIds": [],
                 "sourceCND": "true" if selectedSource in ["CND", "todos"] else "false",
-                "sourceAgents": "true" if selectedSource in ["agentes", "todos"] else "false",
+                "sourceAgents": (
+                    "true" if selectedSource in ["agentes", "todos"] else "false"
+                ),
                 "limitTo": actionsNumber,
                 "showCneZniElementDetail": "true",
             }

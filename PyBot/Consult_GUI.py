@@ -185,7 +185,6 @@ class ConsultGUI:
         cndDataList = []
         idsToValidate = []
         idsWithError = []
-    
 
         for item in dataList:
             if item["source"] == "Agente":
@@ -203,15 +202,24 @@ class ConsultGUI:
             agentItemWitherror = False
             # if agentItem["statusType"] in ["Ejecutada", "Editada"]:
             for cndItem in cndDataList:
-                if (cndItem["instructionTime"] == "" or cndItem["occurrenceTime"] == "" or cndItem["confirmationTime"] == "") and (cndItem["statusType"] == "Validada"):
+                if (
+                    cndItem["instructionTime"] == ""
+                    or cndItem["occurrenceTime"] == ""
+                    or cndItem["confirmationTime"] == ""
+                ) and (cndItem["statusType"] == "Validada"):
                     idsWithError.extend([cndItem["id"]])
                     cndItemWitherror = True
-                if (agentItem["instructionTime"] == "" or agentItem["occurrenceTime"] == "" or agentItem["confirmationTime"] == "") and (agentItem["statusType"] == "Validada"):
+                if (
+                    agentItem["instructionTime"] == ""
+                    or agentItem["occurrenceTime"] == ""
+                    or agentItem["confirmationTime"] == ""
+                ) and (agentItem["statusType"] == "Validada"):
                     idsWithError.extend([agentItemId])
                     agentItemWitherror = True
                 if (
-                    not cndItemWitherror and not agentItemWitherror and
-                    cndItem["elementId"] == agentItem["elementId"]
+                    not cndItemWitherror
+                    and not agentItemWitherror
+                    and cndItem["elementId"] == agentItem["elementId"]
                     and cndItem["actionType"] == agentItem["actionType"]
                     and (cndItem["causeStatus"] == agentItem["causeStatus"])
                     and (cndItem["newAvailability"] == agentItem["newAvailability"])
@@ -284,7 +292,7 @@ class ConsultGUI:
 
         if len(idsWithError) > 0:
             msg = "Existen registros validados con tiempos faltantes. Se resaltan en rojo. Revisar."
-            color = 'red'
+            color = "red"
             self.update_infolabel(infoLabel, infoText, color, msg)
 
         self.update_table(frame, itemsList, self.selectedLayout)
@@ -378,6 +386,7 @@ class ConsultGUI:
             print(e)
 
     def try_load_custom_cols(self, user, infoLabel):
+        """Controller of loading process of the selected custom columns."""
 
         client = MongoClient(self.mongDBUri, server_api=ServerApi("1"))
 
@@ -608,7 +617,7 @@ class ConsultGUI:
         selectedLayout = StringVar()
         selectedLayout.set(self.selectedLayout)  # Completa por defecto
         radioButtonCompacta = Radiobutton(
-           consultTab,
+            consultTab,
             text="Compacta",
             variable=selectedLayout,
             value="compacta",
@@ -618,7 +627,7 @@ class ConsultGUI:
         radioButtonCompleta = Radiobutton(
             consultTab,
             text="Completa",
-           variable=selectedLayout,
+            variable=selectedLayout,
             value="completa",
             command=lambda: self.on_radio_change(frame, selectedLayout.get()),
         )
