@@ -33,7 +33,9 @@ class BackEnd:
         """Return the current authentication token."""
         return self._Token
 
-    def get_token(self, userText, pswText):
+    def get_token(
+        self, userText, pswText
+    ) -> dict | ConnectionError | RemoteDisconnected:
         """Get the authentication token from the backend."""
         # baseUrl = os.getenv("Auth_URL"); ### PRODUCTIVO
         # baseUrl = f"http://localhost:{self.port}/"; ### -------- PRUEBAS --------------
@@ -150,13 +152,21 @@ class BackEnd:
         pswText = pswEntry.get()
         token = self.get_token(userText, pswText)
 
-        if "error" in token.keys():
-            infoText = token["error"]
-            print(token)
-            if "StatusCode" in token['error']:
-                error = token['error']
-                if error["StatusCode"] != 200:
-                    infoText = f"Error de autenticación: {error['StatusCode']}   - {error['Message']}"
+        if not isinstance(token, (ConnectionError, RemoteDisconnected)):
+            if "error" in token.keys():
+                infoText = token["error"]
+
+                if isinstance(token["error"], (ConnectionError, RemoteDisconnected)):
+                    infoText = "Error de conexión al servidor. Verifique su conexión e intente nuevamente."
+                else:
+                    keys = set(token["error"].keys())
+                    print(token)
+                    if "StatusCode" in keys:
+                        error = token["error"]
+                        if error.StatusCode != 200:
+                            infoText = f"Error de autenticación: {error['StatusCode']} - {error['Message']}"
+        else:
+            infoText = "Error de conexión al servidor. Verifique su conexión e intente nuevamente."
         # self.getData(Token, date)
         # headers = {"Authorization": "Bearer MYREALLYLONGTOKENIGOT"}
         # text1.delete("1.0", END);
