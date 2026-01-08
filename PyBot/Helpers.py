@@ -141,6 +141,7 @@ def dfTable(parent, dataList, selectedCols, layout="completa"):
             wantedCols = selectedCols
         else:
             wantedCols = [
+                "id",
                 "actionType",
                 "elementName",
                 "elementCompanyShortName",
@@ -171,16 +172,21 @@ def dfTable(parent, dataList, selectedCols, layout="completa"):
                 "error",  # "error" is used to highlight rows that have errors.
             ]
 
-    sourceIndex = wantedCols.index("source")
-    validateIndex = wantedCols.index("validate")
-    errorIndex = wantedCols.index("error")
     colsExisting = []
     for col in df.columns:
         if col in wantedCols:
             colsExisting.append(col)
 
+    sourceIndex = colsExisting.index("source")
+    validateIndex = wantedCols.index("validate")
+    errorIndex = wantedCols.index("error")
+
     # print('Columnas rec: ', list(colsExisting))
     newDf = df[colsExisting].copy()
+
+    if len(list(colsExisting)) == len(wantedCols):
+        validateIndex = colsExisting.index("validate")
+        errorIndex = colsExisting.index("error")
 
     tree["columns"] = list(newDf.columns)
     for col in newDf.columns:
