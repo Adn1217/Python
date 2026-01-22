@@ -4,10 +4,11 @@ import os
 import threading
 from datetime import date, datetime
 from tkinter import (Button, Checkbutton, Frame, Label, Radiobutton, StringVar,
-                     Tk, Toplevel, ttk)
+                     Tk, Toplevel, filedialog, messagebox, ttk)
 
+import pandas as pd
 from dotenv import load_dotenv
-from Helpers import dfTable
+from Helpers import dfTable, formatList
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 from tkcalendar import Calendar
@@ -32,7 +33,7 @@ class ConsultGUI:
         infoText = keywords["infoText"]
         numActionsText = keywords["numActionsText"]
         frame = keywords["frame"]
-        button = keywords["button"]
+        disabledButtons = keywords["disabledButtons"]
         selectedSource = "todos"
         selectedSource = keywords["selectedSource"]
         msg = f"Realizando consulta de {selectedSource} para el {selectedDate}..."
@@ -49,7 +50,7 @@ class ConsultGUI:
             #     infoText,
             #     numActionsText,
             #     frame,
-            #     button,
+            #     disabledButtons,
             #     selectedSource,
             # ),
             kwargs={
@@ -59,7 +60,7 @@ class ConsultGUI:
                 "infoText": infoText,
                 "numActionsText": numActionsText,
                 "frame": frame,
-                "button": button,
+                "disabledButtons": disabledButtons,
                 "selectedSource": selectedSource,
             },
             daemon=True,
@@ -82,7 +83,7 @@ class ConsultGUI:
         infoText = keywords["infoText"]
         numActionsText = keywords["numActionsText"]
         frame = keywords["frame"]
-        button = keywords["button"]
+        disabledButtons = keywords["disabledButtons"]
         selectedSource = keywords["selectedSource"]
 
         data = backend.get_data(consultDate, selectedSource)
@@ -105,9 +106,9 @@ class ConsultGUI:
         else:
             # print('Numero de elementos: ', len(data));
             # table.destroy()
-            self.update_table(frame, data, self.selectedLayout, button)
+            self.update_table(frame, data, self.selectedLayout, disabledButtons)
 
-    def update_table(self, parent, data, selectedLayout="completa", button=None):
+    def update_table(self, parent, data, selectedLayout="completa", buttons=None):
         """Update the table with received data."""
         # print('Numero de elementos: ', len(data));
         # df = pd.DataFrame(self.dataList);
@@ -119,14 +120,16 @@ class ConsultGUI:
         xscrollBar.grid(row=5, column=0, rowspan=1, sticky="EW")
         yscrollBar.grid(row=4, column=10, rowspan=1, sticky="NS")
         self.dataList = data
-        if button is not None:
-            self.update_button_state(button, self.dataList)
+        if buttons is not None and len(buttons) > 0:
+            self.update_buttons_state(buttons, self.dataList)
         return table
 
-    def update_button_state(self, validateButton: Button, dataList):
+    def update_buttons_state(self, ButtonSet: list[Button], dataList):
         """Update the state of the validate button based on the dataList number of elements."""
+
         state = "normal" if len(dataList) > 1 else "disabled"
-        validateButton.configure(state=state)
+        for button in ButtonSet:
+            button.configure(state=state)
 
     def select_date_and_exit(self, window, calendar, dateText):
         """Select the date from the calendar and close the window."""
@@ -297,6 +300,47 @@ class ConsultGUI:
 
         self.update_table(frame, itemsList, self.selectedLayout)
         print("Se pulsó validar")
+
+    def export(self, infoText, infoLabel, dataList):
+        """Export operational records to a xlsx file."""
+        ##TODO: Improve export functionality to export only selected columns.
+        outputFileName = "RegistrosSIO_" + str(self.selectedDate) + ".xlsx"
+        fdataList = formatList(dataList)
+        df = pd.DataFrame(fdataList)
+
+        filePath = filedialog.asksaveasfilename(
+            defaultextension=".xlsx",
+            filetypes=[("Excel files", "*.xlsx"), ("CSV files", "*.csv")],
+            initialfile=outputFileName,
+            title="Guardar como",
+        )
+
+        if filePath:
+            print(f"Descargando registros a: {filePath}")
+            try:
+                if not filePath.lower().endswith(".csv"):
+                    df.to_excel(
+                        filePath, index=False, sheet_name=str(self.selectedDate)
+                    )
+                else:
+                    df.to_csv(filePath, index=False, sep=",")
+
+                messagebox.showinfo(
+                    "Descarga exitosa",
+                    f"Registros guardados en {filePath}",
+                )
+                msg = f"Registros guardados en {outputFileName}"
+                print(msg)
+
+            except Exception as e:
+                messagebox.showerror(
+                    "Error",
+                    f"Ha ocurrido un error al intentar descargar los registros: {e}",
+                )
+                print(f"Error realizando la descarga: {e}")
+        else:
+            messagebox.showinfo("Info", "Descarga cancelada.")
+            print("Descarga cancelada.")
 
     def try_save_custom_cols(self, **kwargs):
         """Controller of saving process of the selected custom columns."""
@@ -653,6 +697,14 @@ class ConsultGUI:
         )
         validateButton.grid(row=2, column=7, rowspan=1, padx=10, pady=10, sticky="W")
 
+        exportButton = Button(
+            consultTab,
+            text="Exportar",
+            state="disabled",
+            command=lambda: self.export(infoText, infoLabel, self.dataList),
+        )
+        exportButton.grid(row=2, column=8, rowspan=1, padx=10, pady=10, sticky="W")
+
         frame = Frame(consultTab, width=1200, height=550)
         frame.grid(
             row=4, column=0, columnspan=10, rowspan=1, padx=10, pady=5, sticky="W"
@@ -665,7 +717,8 @@ class ConsultGUI:
             list(range(gridNumCols)), weight=1
         )  # Configure all rows to expand
         frame.grid_propagate(False)  # Prevent frame from resizing to fit contents
-        self.update_table(frame, self.dataList, self.selectedLayout, validateButton)
+        disabledButtons = [validateButton, exportButton]
+        self.update_table(frame, self.dataList, self.selectedLayout, disabledButtons)
 
         numActionsText = StringVar()
         numActionsText.set("0 registros.")
@@ -682,7 +735,7 @@ class ConsultGUI:
                 infoText=infoText,
                 numActionsText=numActionsText,
                 frame=frame,
-                button=validateButton,
+                disabledButtons=[validateButton, exportButton],
                 selectedSource=selectedSource.get(),
             ),
         )
