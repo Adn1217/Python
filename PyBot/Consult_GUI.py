@@ -17,7 +17,7 @@ from tkcalendar import Calendar
 class ConsultGUI:
     """Class to manage the GUI for consulting database"""
 
-    def update_infolabel(self, infoLabel, infoText, color, msg):
+    def update_infolabel(self, infoLabel, infoText, msg, color="black"):
         """Update the information label with a message and color."""
         infoLabel.configure(fg=color)
         infoText.set(msg)
@@ -37,7 +37,7 @@ class ConsultGUI:
         selectedSource = "todos"
         selectedSource = keywords["selectedSource"]
         msg = f"Realizando consulta de {selectedSource} para el {selectedDate}..."
-        self.update_infolabel(infoLabel, infoText, "black", msg)
+        self.update_infolabel(infoLabel, infoText, msg)
         print(f"Realizando consulta de {selectedSource} para el {selectedDate}...")
         consultDate = selectedDate
         threading.Thread(
@@ -296,7 +296,7 @@ class ConsultGUI:
         if len(idsWithError) > 0:
             msg = "Existen registros validados con tiempos faltantes. Se resaltan en rojo. Revisar."
             color = "red"
-            self.update_infolabel(infoLabel, infoText, color, msg)
+            self.update_infolabel(infoLabel, infoText, msg, color)
 
         self.update_table(frame, itemsList, self.selectedLayout)
         print("Se pulsó validar")
@@ -331,12 +331,16 @@ class ConsultGUI:
                 )
                 msg = f"Registros guardados en {outputFileName}"
                 print(msg)
+                self.update_infolabel(infoLabel, infoText, msg)
 
             except Exception as e:
                 messagebox.showerror(
                     "Error",
                     f"Ha ocurrido un error al intentar descargar los registros: {e}",
                 )
+                msg = "Ha ocurrido un error en la descarga."
+                color = "red"
+                self.update_infolabel(infoLabel, infoText, msg, color)
                 print(f"Error realizando la descarga: {e}")
         else:
             messagebox.showinfo("Info", "Descarga cancelada.")
