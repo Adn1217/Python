@@ -9,26 +9,37 @@ import pandas as pd
 class Table:
     """Class to create a table in a Tkinter window using Entries."""
 
-    def __init__(self, parent, **kwargs):  #
-        """Initialize the table with the given parameters."""
-        dataList = kwargs["dataList"]
-        width = kwargs["width"]
-        color = kwargs["color"]
-        font = kwargs["font"]
-        fontSize = kwargs["fontSize"]
+    def get_table(self):
+        """Return the table instance."""
+        return self
 
-        numRows = len(dataList)
-        numCols = len(dataList[0])
+    def set_table(self, parent):
+        """Set the table instance."""
+        numRows = len(self.data_list)
+        numCols = len(self.data_list[0])
 
         # code for creating table
         for i in range(numRows):
             for j in range(numCols):
 
                 self.e = Entry(
-                    parent, width=width, fg=color, font=(font, fontSize, "bold")
+                    parent,
+                    width=self.width,
+                    fg=self.color,
+                    font=(self.font, self.font_size, "bold"),
                 )
                 self.e.grid(row=i, column=j)
-                self.e.insert(END, dataList[i][j])
+                self.e.insert(END, self.data_list[i][j])
+
+    def __init__(self, parent, **kwargs):
+        """Initialize the table with the given parameters."""
+        self.data_list = kwargs["dataList"]
+        self.width = kwargs["width"]
+        self.color = kwargs["color"]
+        self.font = kwargs["font"]
+        self.font_size = kwargs["fontSize"]
+
+        self.set_table(parent)
 
 
 def formatList(dataList):
