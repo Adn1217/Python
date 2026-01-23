@@ -1,4 +1,4 @@
-"""This module handles backend operations for authentication and data retrieval."""
+"""This module handles backend operations for authentication and data retrieval."""  # pylint: disable=invalid-name
 
 import json
 import os
@@ -17,21 +17,21 @@ class BackEnd:
         load_dotenv()
         self.env = env
         self.port = port
-        self._Token = {}
+        self._token = {}
 
         if self.env == "prod":
-            self.baseAuthUrl = os.getenv("AUTH_URL")
-            self.baseActionsUrl = os.getenv("MANEUVER_URL")
+            self.base_auth_url = os.getenv("AUTH_URL")
+            self.base_actions_url = os.getenv("MANEUVER_URL")
         else:
-            self.devBaseUrl = str(os.getenv("URL_LOCAL")) + str(self.port) + "/"
-            self.baseAuthUrl = self.devBaseUrl
-            self.baseActionsUrl = self.devBaseUrl
+            self.dev_base_url = str(os.getenv("URL_LOCAL")) + str(self.port) + "/"
+            self.base_auth_url = self.dev_base_url
+            self.base_actions_url = self.dev_base_url
 
         print(f"Backend instance Created in '{self.env}'.")
 
     def show_token(self):
         """Return the current authentication token."""
-        return self._Token
+        return self._token
 
     def get_token(
         self, userText, pswText
@@ -41,7 +41,7 @@ class BackEnd:
         # baseUrl = f"http://localhost:{self.port}/"; ### -------- PRUEBAS --------------
         # proxies = {'https':'http://'+userText+':'+pswText+'@proxy-xm:8080'}
         endpoint = str(os.getenv("AUTH_ENDPOINT"))
-        url = str(self.baseAuthUrl) + endpoint
+        url = str(self.base_auth_url) + endpoint
         # print(f'url: {url}')
 
         headers = CaseInsensitiveDict()
@@ -73,27 +73,27 @@ class BackEnd:
             # print(f"Response code: {r.status_code}");
             # print(f'Respuesta: {response}');
             if response.status_code == 200:
-                self._Token = json.loads(response.text)
+                self._token = json.loads(response.text)
                 # print(f"Token: {self._Token['token']}");
             else:
-                self._Token = {"error": resp}
+                self._token = {"error": resp}
                 print(f"Se ha presentado error {response.status_code}: {resp}")
-            return self._Token
+            return self._token
         except (ConnectionError, RemoteDisconnected) as err:
             print("Se ha presentado Error: ", err)
-            self._Token = {"error": err}
-            return self._Token
+            self._token = {"error": err}
+            return self._token
 
     def get_data(self, date, selectedSource="todos"):
         """Get data from the backend based on the provided date."""
-        token = self._Token
+        token = self._token
         # print('Token usado: ', Token);
         # baseUrl = os.getenv("MANEUVER_URL"); ### PRODUCTIVO
         # baseUrl = f"http://localhost:{self.port}/"; ### -------- PRUEBAS --------------
         # proxies = {'https':'http://'+userText+':'+pswText+'@proxy-xm:8080'}
         endpoint = str(os.getenv("ACTIONS_ENDPOINT"))
         actionsNumber = 10000
-        url = str(self.baseActionsUrl) + endpoint
+        url = str(self.base_actions_url) + endpoint
         # print(f'url: {url}')
         headers = CaseInsensitiveDict()
         headers["accept"] = "*/*"
@@ -136,8 +136,38 @@ class BackEnd:
                 resp = {"error": f"Se ha presentado error {response.status_code}"}
                 print(f"Se ha presentado error {response.status_code}")
             # print("Atributos: ", resp[0].keys());
-            # Atributos disponibles: ['id', 'actionTypeId', 'actionType', 'flowId', 'flow', 'flowConsecutive', 'scheduledStartDate', 'elementId', 'elementTypeId', 'elementName', 'elementCompanyName', 'elementCompanyShortName', 'instructionTime', 'occurrenceTime', 'confirmationTime', 'causeStatusId', 'causeStatus', 'consignmentId', 'causeChangeAvailabilityId', 'causeChangeAvailability', 'newAvailability', 'elementCausingId', 'causeSuspendedExecutionId', 'causeSuspendedExecution', 'fileDocumentNumber', 'associatedActionId', 'causeOperationalId', 'causeOperational', 'controlVQId', 'controlVQ', 'teleprotectionId', 'teleprotection', 'finalElement', 'percentage', 'instructionTimeChecked', 'occurrenceTimeChecked', 'confirmationTimeChecked', 'order', 'parentTimeActionId', 'parentTypeTimeAssociatedId', 'parentTypeTimeAssociated', 'typeTimeAssociatedId', 'typeTimeAssociated', 'withPriorAuthorization', 'isVoltageControl', 'hidden', 'description', 'verificationNote', 'statusTypeId', 'statusType', 'locked', 'lockedByActionId', 'system', 'originPanelId', 'originPanel', 'causeOrigin', 'causeDetailCno', 'additionalFieldsValue', 'dashboardOrderingDate', 'espId', 'espName', 'espElementId', 'creationTime', 'filterActionOrderingDate', 'unavailableActionId', 'subSystemUnavailableAction', 'cneZone', 'fuel', 'fuelName', 'fuelCEN', 'plantCEN', 'qualityScheme', 'notification', 'reverseNotificationGenerated', 'source', 'disableAvailabilityField', 'dna', 'userValidator', 'configurationId', 'configurationDesc', 'thermalStateId', 'descriptionAdditional']
-            # Atributos de interés: ['id', 'actionTypeId', 'actionType', 'flowId', 'flow', 'flowConsecutive', 'scheduledStartDate', 'elementId', 'elementName', 'elementCompanyShortName', 'instructionTime', 'occurrenceTime', 'confirmationTime', 'causeStatus', 'consignmentId', 'causeChangeAvailability', 'newAvailability', 'elementCausingId', 'causeOperational', 'percentage', 'order', 'withPriorAuthorization', 'isVoltageControl', 'description', 'verificationNote', 'statusType', 'system', 'originPanel', 'causeOrigin', 'causeDetailCno', 'additionalFieldsValue', 'espName', 'espElementId', 'creationTime', 'unavailableActionId', 'subSystemUnavailableAction', 'cneZone', 'fuel', 'fuelName', 'fuelCEN', 'plantCEN', 'qualityScheme', 'source','dna', 'userValidator', 'configurationDesc', 'thermalStateId', 'descriptionAdditional']
+            # Atributos disponibles:
+            # ['id', 'actionTypeId', 'actionType', 'flowId', 'flow',
+            # 'flowConsecutive', 'scheduledStartDate', 'elementId', 'elementTypeId',
+            # 'elementName', 'elementCompanyName', 'elementCompanyShortName', 'instructionTime',
+            # 'occurrenceTime', 'confirmationTime', 'causeStatusId', 'causeStatus', 'consignmentId',
+            # 'causeChangeAvailabilityId', 'causeChangeAvailability', 'newAvailability',
+            # 'elementCausingId', 'causeSuspendedExecutionId', 'causeSuspendedExecution',
+            # 'fileDocumentNumber', 'associatedActionId', 'causeOperationalId', 'causeOperational',
+            # 'controlVQId', 'controlVQ', 'teleprotectionId', 'teleprotection', 'finalElement',
+            # 'percentage', 'instructionTimeChecked', 'occurrenceTimeChecked',
+            # 'confirmationTimeChecked', 'order','parentTimeActionId', 'parentTypeTimeAssociatedId',
+            # 'parentTypeTimeAssociated', 'typeTimeAssociatedId', 'typeTimeAssociated',
+            # 'withPriorAuthorization','isVoltageControl','hidden','description','verificationNote',
+            # 'statusTypeId', 'statusType', 'locked', 'lockedByActionId', 'system', 'originPanelId',
+            # 'originPanel', 'causeOrigin', 'causeDetailCno', 'additionalFieldsValue',
+            # 'dashboardOrderingDate', 'espId', 'espName', 'espElementId', 'creationTime',
+            # 'filterActionOrderingDate', 'unavailableActionId', 'subSystemUnavailableAction',
+            # 'cneZone', 'fuel', 'fuelName', 'fuelCEN', 'plantCEN', 'qualityScheme', 'notification',
+            # 'reverseNotificationGenerated', 'source', 'disableAvailabilityField', 'dna',
+            # 'userValidator', 'configurationId', 'configurationDesc', 'thermalStateId',
+            # 'descriptionAdditional']
+            # Atributos de interés:
+            # ['id', 'actionTypeId', 'actionType', 'flowId', 'flow', 'flowConsecutive',
+            # 'scheduledStartDate', 'elementId', 'elementName', 'elementCompanyShortName',
+            # 'instructionTime', 'occurrenceTime', 'confirmationTime','causeStatus','consignmentId'
+            # , 'causeChangeAvailability','newAvailability','elementCausingId', 'causeOperational',
+            # 'percentage', 'order', 'withPriorAuthorization', 'isVoltageControl', 'description',
+            # 'verificationNote','statusType','system','originPanel','causeOrigin','causeDetailCno',
+            # 'additionalFieldsValue', 'espName', 'espElementId', 'creationTime',
+            # 'unavailableActionId', 'subSystemUnavailableAction', 'cneZone', 'fuel', 'fuelName',
+            # 'fuelCEN', 'plantCEN', 'qualityScheme', 'source','dna', 'userValidator',
+            # 'configurationDesc', 'thermalStateId', 'descriptionAdditional']
         else:
             # resp = json.dumps({"error": "Autenticación expirada. Vuelva a autenticarse."},
             # indent=4, sort_keys=True, ensure_ascii=False);
@@ -157,14 +187,21 @@ class BackEnd:
                 infoText = token["error"]
 
                 if isinstance(token["error"], (ConnectionError, RemoteDisconnected)):
-                    infoText = "Error de conexión al servidor. Verifique su conexión e intente nuevamente."
+                    infoText = (
+                        "Error de conexión al servidor."
+                        "Verifique su conexión e intente nuevamente."
+                    )
                 else:
                     keys = set(token["error"].keys())
                     print(token)
                     if "StatusCode" in keys:
                         error = token["error"]
-                        if error.StatusCode != 200:
-                            infoText = f"Error de autenticación: {error['StatusCode']} - {error['Message']}"
+                        errorMsg = error["Message"].split(".")
+                        if error["StatusCode"] != 200:
+                            infoText = (
+                                f"Error de autenticación: {error['StatusCode']} - "
+                                f"{errorMsg[0]}"
+                            )
         else:
             infoText = "Error de conexión al servidor. Verifique su conexión e intente nuevamente."
         # self.getData(Token, date)

@@ -34,13 +34,13 @@ class Table:
 def formatList(dataList):
     """Format a list of dictionaries by replacing None with empty strings"""
 
+    # pylint: disable=invalid-name
     DATESCOL = [
         "scheduledStartDate",
         "instructionTime",
         "occurrenceTime",
         "confirmationTime",
     ]
-
     for (
         item
     ) in dataList:  # Eliminando diccionarios internos y formateando campos de fecha.

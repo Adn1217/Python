@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 class MockAPIHandler(BaseHTTPRequestHandler):
     """Handler for the mock API server."""
 
-    def do_GET(self):
+    def do_GET(self):  # pylint: disable=invalid-name
         """Handle GET requests to the mock API server."""
         parsedUrl = urlparse(self.path)
         path = parsedUrl.path
