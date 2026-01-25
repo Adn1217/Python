@@ -73,29 +73,10 @@ def formatList(dataList):
     return dataList
 
 
-def dfTable(parent, dataList, selectedCols, layout="completa"):
-    """Create a DataFrame table in a Tkinter window using ttk.Treeview and pandas."""
-
-    # print('dataList: ', dataList);
-    dataList = formatList(dataList)  # Formateando lista de datos.
+def identifyColsToDisplay(dataList, layout, selectedCols) -> list:
+    """Identify columns to display in the DataFrame based on layout, selected cols and dataList."""
     df = pd.DataFrame(dataList)
     # print("DataFrame: ", df)
-    # numElements = len(dataList)
-    hScrollBar = Scrollbar(parent, orient="horizontal")
-    # HScrollBar.grid(row=5, column=0, rowspan=1, columnspan=9, sticky='ew');
-    vScrollBar = Scrollbar(parent, orient="vertical")
-
-    tree = ttk.Treeview(
-        parent,
-        show=["headings"],
-        xscrollcommand=hScrollBar.set,
-        yscrollcommand=vScrollBar.set,
-    )  ## "headings" to not show tree (additional column).
-    # print('Columnas: ', list(df.columns));
-
-    hScrollBar.config(command=tree.xview)
-    vScrollBar.config(command=tree.yview)
-
     wantedCols = [
         "id",
         "actionType",
@@ -192,12 +173,40 @@ def dfTable(parent, dataList, selectedCols, layout="completa"):
     validateIndex = wantedCols.index("validate")
     errorIndex = wantedCols.index("error")
 
-    # print('Columnas rec: ', list(colsExisting))
-    newDf = df[colsExisting].copy()
-
     if len(list(colsExisting)) == len(wantedCols):
         validateIndex = colsExisting.index("validate")
         errorIndex = colsExisting.index("error")
+
+    # print('Columnas rec: ', list(colsExisting))
+    newDf = df[colsExisting].copy()
+
+    return [wantedCols, sourceIndex, validateIndex, errorIndex, newDf]
+
+
+def dfTable(parent, dataList, selectedCols, layout="completa"):
+    """Create a DataFrame table in a Tkinter window using ttk.Treeview and pandas."""
+
+    # print('dataList: ', dataList);
+    dataList = formatList(dataList)  # Formateando lista de datos.
+    # numElements = len(dataList)
+    hScrollBar = Scrollbar(parent, orient="horizontal")
+    # HScrollBar.grid(row=5, column=0, rowspan=1, columnspan=9, sticky='ew');
+    vScrollBar = Scrollbar(parent, orient="vertical")
+
+    tree = ttk.Treeview(
+        parent,
+        show=["headings"],
+        xscrollcommand=hScrollBar.set,
+        yscrollcommand=vScrollBar.set,
+    )  ## "headings" to not show tree (additional column).
+    # print('Columnas: ', list(df.columns));
+
+    hScrollBar.config(command=tree.xview)
+    vScrollBar.config(command=tree.yview)
+
+    [wantedCols, sourceIndex, validateIndex, errorIndex, newDf] = identifyColsToDisplay(
+        dataList, layout, selectedCols
+    )
 
     tree["columns"] = list(newDf.columns)
     for col in newDf.columns:
