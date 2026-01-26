@@ -11,13 +11,13 @@ from dotenv import load_dotenv
 class MockAPIHandler(BaseHTTPRequestHandler):
     """Handler for the mock API server."""
 
-    ##TODO: Implement endpoints for Agents and CND independent consults.
-
     def do_GET(self):  # pylint: disable=invalid-name
         """Handle GET requests to the mock API server."""
         parsedUrl = urlparse(self.path)
         path = parsedUrl.path
         queryParams = parse_qs(parsedUrl.query)
+        # print("Received queryParams: ", queryParams)
+        # print("path: ", path)
         load_dotenv()
         actionsEndpoint = "/" + str(os.getenv("ACTIONS_ENDPOINT"))
         authEndpoint = "/" + str(os.getenv("AUTH_ENDPOINT"))
@@ -26,15 +26,27 @@ class MockAPIHandler(BaseHTTPRequestHandler):
         if path == actionsEndpoint:
             sampleDataFileName = "sampleData.json"
             sampleDataFilePath = os.path.join(scriptDir, sampleDataFileName)
+            selectedSource = queryParams.get("source", ["todos"])[0]
             # with open(rkGUI\PyBot\sampleData.jsonk, 'r') as f:
             with open(sampleDataFilePath, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 if data:
-                    self.send_response(200)
-                    self.send_header("Content-type", "application/json")
-                    self.end_headers()
-                    self.wfile.write(json.dumps(data).encode("utf-8"))
-            # if 'id' in query_params:
+                    if selectedSource != "todos":
+                        filtered_data = [
+                            item
+                            for item in data
+                            if item.get("source") == selectedSource
+                        ]
+                        self.send_response(200)
+                        self.send_header("Content-type", "application/json")
+                        self.end_headers()
+                        self.wfile.write(json.dumps(filtered_data).encode("utf-8"))
+                    else:
+                        self.send_response(200)
+                        self.send_header("Content-type", "application/json")
+                        self.end_headers()
+                        self.wfile.write(json.dumps(data).encode("utf-8"))
+                # if 'id' in query_params:
             #     user_id = int(query_params['id'][0])
             #     user = next((user for user in data['users'] if user['id'] == user_id), None)
             #     if user:

@@ -127,8 +127,11 @@ class BackEnd:
                     url, headers=headers, json=jsonPayload, timeout=50
                 )  ### PRODUCTIVO #json para usar json, data para usar cadena de string.
             else:
+                if selectedSource == "agentes":
+                    selectedSource = "Agente"
+                params = {"source": selectedSource}
                 response = requests.get(
-                    url, timeout=50
+                    url, timeout=50, params=params
                 )  ### -------- PRUEBAS --------------
             if response.status_code == 200:
                 resp = response.json()

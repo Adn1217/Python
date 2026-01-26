@@ -75,8 +75,6 @@ def formatList(dataList):
 
 def identifyColsToDisplay(dataList, layout, selectedCols) -> list:
     """Identify columns to display in the DataFrame based on layout, selected cols and dataList."""
-    df = pd.DataFrame(dataList)
-    # print("DataFrame: ", df)
     wantedCols = [
         "id",
         "actionType",
@@ -120,6 +118,16 @@ def identifyColsToDisplay(dataList, layout, selectedCols) -> list:
         "validate",  # "validate" is used to highlight rows that are validated.
         "error",  # "error" is used to highlight rows that have errors.
     ]
+
+    # Controls when query result is empty. Creates a df  with only wantedCols as headers.
+    if len(dataList) == 0:
+        dataListDict = {}
+        for header in wantedCols:
+            dataListDict[header] = ""
+        dataList = [dataListDict]
+
+    df = pd.DataFrame(dataList)
+    # print("DataFrame: ", df)
 
     if layout == "compacta":
         if len(wantedCols) != len(selectedCols):
