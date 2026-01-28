@@ -674,6 +674,7 @@ class ConsultGUI:
                 colVar.set("")
 
     def __init__(self, backend, grantedUser):
+        ##TODO: Separate consult GUI and custom fields GUI in different classes.
 
         # super().__init__();
         # self.withdraw(); #Hidden.
