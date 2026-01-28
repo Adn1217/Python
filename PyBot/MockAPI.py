@@ -32,7 +32,7 @@ class MockAPIHandler(BaseHTTPRequestHandler):
                 data = json.load(f)
                 if data:
                     if selectedSource != "todos":
-                        filtered_data = [
+                        filteredData = [
                             item
                             for item in data
                             if item.get("source") == selectedSource
@@ -40,7 +40,7 @@ class MockAPIHandler(BaseHTTPRequestHandler):
                         self.send_response(200)
                         self.send_header("Content-type", "application/json")
                         self.end_headers()
-                        self.wfile.write(json.dumps(filtered_data).encode("utf-8"))
+                        self.wfile.write(json.dumps(filteredData).encode("utf-8"))
                     else:
                         self.send_response(200)
                         self.send_header("Content-type", "application/json")
