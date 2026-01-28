@@ -3,8 +3,9 @@
 import os
 import threading
 from datetime import date, datetime
-from tkinter import (Button, Checkbutton, Frame, Label, Radiobutton, StringVar,
-                     Tk, Toplevel, filedialog, messagebox, ttk)
+from tkinter import (BooleanVar, Button, Checkbutton, Frame, Label,
+                     Radiobutton, StringVar, Tk, Toplevel, filedialog,
+                     messagebox, ttk)
 
 from dotenv import load_dotenv
 from Helpers import dfTable, formatList, identifyColsToDisplay
@@ -174,7 +175,7 @@ class ConsultGUI:
             self.update_table(parent, self.data_list, self.selected_layout)
             # print("Radio button changed")
 
-    def on_checkbox_click(self):
+    def on_checkbox_click(self, recoverCheckbox):
         """Callback function for checkbox click."""
         # print("Checkbox clicked")
         self.selected_cols = [
@@ -182,8 +183,34 @@ class ConsultGUI:
             for _, colVar in self.col_var_dict.items()
             if colVar.get() != ""
         ]
+        recoverCheckbox.configure(state="disabled")
         print("Selected columns: ", self.selected_cols)
         # self.update_table(frame, self.dataList, self.selectedLayout)
+
+    def on_all_checkbox_click(self, allColVar, recoverCheckbox):
+        """Select all columns in the checkbox list."""
+        for key, colVar in self.col_var_dict.items():
+            colVar.set(key)
+        allColVar.set(False)
+        recoverCheckbox.configure(state="normal")
+
+    def on_none_checkbox_click(self, noneColVar, recoverCheckbox):
+        """Deselect all columns in the checkbox list."""
+        for _, colVar in self.col_var_dict.items():
+            colVar.set("")
+        noneColVar.set(False)
+        recoverCheckbox.configure(state="normal")
+
+    def on_recover_checkbox_click(self, recoverColVar):
+        """Recover previously selected columns in the checkbox list."""
+
+        for key, colVar in self.col_var_dict.items():
+            if key in self.selected_cols:
+                colVar.set(key)
+            else:
+                colVar.set("")
+
+        recoverColVar.set(False)
 
     def validate(self, frame, infoText, infoLabel, dataList):
         """Validate operational records."""
@@ -927,12 +954,68 @@ class ConsultGUI:
                 variable=self.col_var_dict[col],  # Last one = colVar
                 onvalue=col,
                 offvalue="",
-                command=self.on_checkbox_click,
+                command=lambda: self.on_checkbox_click(recoverColsCheckButton),
             )
             # colCheckButton.select()  # Select the checkbutton by default
             colCheckButton.grid(
                 row=cont + 2, column=1 + numCol, columnspan=1, sticky="W"
             )
+
+        allNoneCheckLabelText = StringVar()
+        allNoneCheckLabelText.set("Seleccionar/Deseleccionar:")
+        allNoneCheckLabel = Label(
+            customFieldsTab,
+            textvariable=allNoneCheckLabelText,
+            padx=10,
+            # pady=20,
+            font=("Helvetica", 10, "bold"),
+        )
+        allNoneCheckLabel.grid(
+            row=15,
+            column=1,
+            columnspan=2,
+            sticky="NSEW",
+        )
+        allColVar = BooleanVar(
+            value=False
+        )  # Create a BooleanVar for all-cols checkbutton
+        allColsCheckButton = Checkbutton(
+            customFieldsTab,
+            text="Todas",
+            # variable=self.col_var_dict[-1],  # Last one = colVar
+            variable=allColVar,
+            # onvalue="",
+            # offvalue="",
+            command=lambda: self.on_all_checkbox_click(
+                allColVar, recoverColsCheckButton
+            ),
+        )
+        allColsCheckButton.grid(row=15, column=3, columnspan=1, sticky="W")
+
+        noneColVar = BooleanVar(value=False)
+
+        noneColsCheckButton = Checkbutton(
+            customFieldsTab,
+            text="Ninguna",
+            # variable=self.col_var_dict[-1],  # Last one = colVar
+            variable=noneColVar,
+            command=lambda: self.on_none_checkbox_click(
+                noneColVar, recoverColsCheckButton
+            ),
+        )
+        noneColsCheckButton.grid(row=15, column=4, columnspan=1, sticky="W")
+
+        recoverColVar = BooleanVar(
+            value=False
+        )  # Create a BooleanVar for all-cols checkbutton
+        recoverColsCheckButton = Checkbutton(
+            customFieldsTab,
+            text="Recuperar",
+            state="disabled",
+            variable=recoverColVar,
+            command=lambda: self.on_recover_checkbox_click(recoverColVar),
+        )
+        recoverColsCheckButton.grid(row=15, column=5, columnspan=1, sticky="W")
 
         saveCustomColsButton = Button(
             customFieldsTab,
@@ -945,7 +1028,7 @@ class ConsultGUI:
             ),
         )
         saveCustomColsButton.grid(
-            row=13, column=3, rowspan=1, padx=10, pady=10, sticky="WE"
+            row=16, column=3, rowspan=1, padx=10, pady=10, sticky="WE"
         )
 
         loadCustomColsButton = Button(
@@ -958,13 +1041,13 @@ class ConsultGUI:
             ),
         )
         loadCustomColsButton.grid(
-            row=13, column=4, rowspan=1, padx=10, pady=10, sticky="WE"
+            row=16, column=4, rowspan=1, padx=10, pady=10, sticky="WE"
         )
 
         infoTextCustomCols = StringVar()
         infoTextCustomCols.set("")
         infoLabelCustomCols = Label(
-            customFieldsTab, textvariable=infoTextCustomCols, padx=10
+            customFieldsTab, textvariable=infoTextCustomCols, padx=10, pady=10
         )
         infoLabelCustomCols.grid(row=14, column=1, columnspan=3, sticky="W")
 
