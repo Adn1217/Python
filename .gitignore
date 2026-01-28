@@ -5,3 +5,4 @@ venv
 sampleData.json
 sampleToken.json
 .vscode/
+*.code-workspace

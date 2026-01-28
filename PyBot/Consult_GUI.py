@@ -898,19 +898,47 @@ class ConsultGUI:
         # Custom fields tab for selecting columns to display
         # customFieldsTab.rowconfigure(1, weight=1)
         # customFieldsTab.columnconfigure(0, weight=1)
+        sourceDbLabelText = StringVar()
+        sourceDbLabelText.set("BD: ")
+        sourceDbLabel = Label(
+            customFieldsTab, textvariable=sourceDbLabelText, font=("Helvetica", 10, "bold")
+        )
+        sourceDbLabel.grid(
+            row=1, column=2, columnspan=1, rowspan=1, pady=(10, 0), sticky="E"
+        )
+        
+        selectedDb = StringVar()  # Ambos por defecto
+        selectedDb.set("Servidor")  # Set default value
+        
+        radioButtonServer = Radiobutton(
+            customFieldsTab, text="Servidor", variable=selectedDb, value="Servidor"
+        )
+
+        radioButtonCloud = Radiobutton(
+            customFieldsTab, text="Nube", variable=selectedDb, value="Atlas"
+        )
+
+        radioButtonServer.grid(
+            row=1, column=3, columnspan=1, rowspan=1, pady=(10, 0), sticky="NSEW"
+        )
+
+        radioButtonCloud.grid(
+            row=1, column=4, columnspan=1, rowspan=1, pady=(10, 0), sticky="W"
+        )
+
         colCheckLabelText = StringVar()
         colCheckLabelText.set("Columnas disponibles: ")
         colLabel = Label(
             customFieldsTab,
             textvariable=colCheckLabelText,
-            padx=10,
-            pady=20,
             font=("Helvetica", 10, "bold"),
         )
         colLabel.grid(
-            row=1,
-            column=0,
-            columnspan=5,
+            row=2,
+            column=1,
+            columnspan=4,
+            padx=10,
+            pady=(10, 20),
             sticky="NSEW",
         )
 
@@ -983,7 +1011,7 @@ class ConsultGUI:
             )
             # colCheckButton.select()  # Select the checkbutton by default
             colCheckButton.grid(
-                row=cont + 2, column=1 + numCol, columnspan=1, sticky="W"
+                row=cont + 3, column=1 + numCol, columnspan=1, sticky="W"
             )
 
         allNoneCheckLabelText = StringVar()
@@ -1007,10 +1035,7 @@ class ConsultGUI:
         allColsCheckButton = Checkbutton(
             customFieldsTab,
             text="Todas",
-            # variable=self.col_var_dict[-1],  # Last one = colVar
             variable=allColVar,
-            # onvalue="",
-            # offvalue="",
             command=lambda: self.on_all_checkbox_click(
                 allColVar, recoverColsCheckButton
             ),
@@ -1022,7 +1047,6 @@ class ConsultGUI:
         noneColsCheckButton = Checkbutton(
             customFieldsTab,
             text="Ninguna",
-            # variable=self.col_var_dict[-1],  # Last one = colVar
             variable=noneColVar,
             command=lambda: self.on_none_checkbox_click(
                 noneColVar, recoverColsCheckButton
@@ -1074,7 +1098,7 @@ class ConsultGUI:
         infoLabelCustomCols = Label(
             customFieldsTab, textvariable=infoTextCustomCols, padx=10, pady=10
         )
-        infoLabelCustomCols.grid(row=14, column=1, columnspan=3, sticky="W")
+        infoLabelCustomCols.grid(row=14, column=1, columnspan=3, pady=(0,10), sticky="W")
 
         if (
             (self.mongo_db_uri is None)
