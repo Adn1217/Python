@@ -1007,10 +1007,7 @@ class ConsultGUI:
         allColsCheckButton = Checkbutton(
             customFieldsTab,
             text="Todas",
-            # variable=self.col_var_dict[-1],  # Last one = colVar
             variable=allColVar,
-            # onvalue="",
-            # offvalue="",
             command=lambda: self.on_all_checkbox_click(
                 allColVar, recoverColsCheckButton
             ),
@@ -1022,7 +1019,6 @@ class ConsultGUI:
         noneColsCheckButton = Checkbutton(
             customFieldsTab,
             text="Ninguna",
-            # variable=self.col_var_dict[-1],  # Last one = colVar
             variable=noneColVar,
             command=lambda: self.on_none_checkbox_click(
                 noneColVar, recoverColsCheckButton
