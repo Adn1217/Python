@@ -395,6 +395,15 @@ class ConsultGUI:
         #     for col in selectedCols:
         #         f.write(f"{col}\n")
 
+        msg = f"Guardando columnas personalizadas del usuario {user}..."
+        self.update_infolabel(infoLabel, infoText, msg)
+        threading.Thread(
+            target=self.execute_save_custom_cols,
+            args=(user, infoLabel, infoText, selectedCols),
+            daemon=True,
+        ).start()
+
+    def execute_save_custom_cols(self, user, infoLabel, infoText, selectedCols):
         client = self.get_mongo_client(infoLabel, infoText)
 
         # Access a DB (creates it if it doesn't exist) and Collections
@@ -435,7 +444,10 @@ class ConsultGUI:
                         cancelButton = Button(
                             window,
                             text="Cancelar",
-                            command=window.destroy,
+                            command=lambda: [
+                                window.destroy(),
+                                self.update_infolabel(infoLabel, infoText, ""),
+                            ],
                         )
 
                         confirmButton.grid(row=3, column=0, rowspan=1, padx=10, pady=10)
@@ -515,7 +527,19 @@ class ConsultGUI:
 
     def try_load_custom_cols(self, user, infoLabel, infoText):
         """Controller of loading process of the selected custom columns."""
+        msg = f"Cargando columnas personalizadas del usuario {user}..."
+        self.update_infolabel(infoLabel, infoText, msg)
+        threading.Thread(
+            target=self.execute_load_custom_cols,
+            args=(
+                user,
+                infoLabel,
+                infoText,
+            ),
+            daemon=True,
+        ).start()
 
+    def execute_load_custom_cols(self, user, infoLabel, infoText):
         client = self.get_mongo_client(infoLabel, infoText)
 
         if isinstance(client, MongoClient) and self.db_name and self.db_collection_name:
