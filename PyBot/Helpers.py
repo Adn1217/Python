@@ -9,38 +9,49 @@ import pandas as pd
 class Table:
     """Class to create a table in a Tkinter window using Entries."""
 
-    def __init__(self, parent, **kwargs):  #
-        """Initialize the table with the given parameters."""
-        dataList = kwargs["dataList"]
-        width = kwargs["width"]
-        color = kwargs["color"]
-        font = kwargs["font"]
-        fontSize = kwargs["fontSize"]
+    def get_table(self):
+        """Return the table instance."""
+        return self
 
-        numRows = len(dataList)
-        numCols = len(dataList[0])
+    def set_table(self, parent):
+        """Set the table instance."""
+        numRows = len(self.data_list)
+        numCols = len(self.data_list[0])
 
         # code for creating table
         for i in range(numRows):
             for j in range(numCols):
 
                 self.e = Entry(
-                    parent, width=width, fg=color, font=(font, fontSize, "bold")
+                    parent,
+                    width=self.width,
+                    fg=self.color,
+                    font=(self.font, self.font_size, "bold"),
                 )
                 self.e.grid(row=i, column=j)
-                self.e.insert(END, dataList[i][j])
+                self.e.insert(END, self.data_list[i][j])
+
+    def __init__(self, parent, **kwargs):
+        """Initialize the table with the given parameters."""
+        self.data_list = kwargs["dataList"]
+        self.width = kwargs["width"]
+        self.color = kwargs["color"]
+        self.font = kwargs["font"]
+        self.font_size = kwargs["fontSize"]
+
+        self.set_table(parent)
 
 
 def formatList(dataList):
     """Format a list of dictionaries by replacing None with empty strings"""
 
+    # pylint: disable=invalid-name
     DATESCOL = [
         "scheduledStartDate",
         "instructionTime",
         "occurrenceTime",
         "confirmationTime",
     ]
-
     for (
         item
     ) in dataList:  # Eliminando diccionarios internos y formateando campos de fecha.
@@ -62,29 +73,8 @@ def formatList(dataList):
     return dataList
 
 
-def dfTable(parent, dataList, selectedCols, layout="completa"):
-    """Create a DataFrame table in a Tkinter window using ttk.Treeview and pandas."""
-
-    # print('dataList: ', dataList);
-    dataList = formatList(dataList)  # Formateando lista de datos.
-    df = pd.DataFrame(dataList)
-    # print("DataFrame: ", df)
-    # numElements = len(dataList)
-    hScrollBar = Scrollbar(parent, orient="horizontal")
-    # HScrollBar.grid(row=5, column=0, rowspan=1, columnspan=9, sticky='ew');
-    vScrollBar = Scrollbar(parent, orient="vertical")
-
-    tree = ttk.Treeview(
-        parent,
-        show=["headings"],
-        xscrollcommand=hScrollBar.set,
-        yscrollcommand=vScrollBar.set,
-    )  ## "headings" to not show tree (additional column).
-    # print('Columnas: ', list(df.columns));
-
-    hScrollBar.config(command=tree.xview)
-    vScrollBar.config(command=tree.yview)
-
+def identifyColsToDisplay(dataList, layout, selectedCols) -> list:
+    """Identify columns to display in the DataFrame based on layout, selected cols and dataList."""
     wantedCols = [
         "id",
         "actionType",
@@ -126,8 +116,18 @@ def dfTable(parent, dataList, selectedCols, layout="completa"):
         "thermalStateId",
         "descriptionAdditional",
         "validate",  # "validate" is used to highlight rows that are validated.
-        "error", # "error" is used to highlight rows that have errors.
+        "error",  # "error" is used to highlight rows that have errors.
     ]
+
+    # Controls when query result is empty. Creates a df  with only wantedCols as headers.
+    if len(dataList) == 0:
+        dataListDict = {}
+        for header in wantedCols:
+            dataListDict[header] = ""
+        dataList = [dataListDict]
+
+    df = pd.DataFrame(dataList)
+    # print("DataFrame: ", df)
 
     if layout == "compacta":
         if len(wantedCols) != len(selectedCols):
@@ -137,10 +137,11 @@ def dfTable(parent, dataList, selectedCols, layout="completa"):
                 selectedCols.append("validate")
             if "error" not in selectedCols:
                 selectedCols.append("error")
-                
+
             wantedCols = selectedCols
         else:
             wantedCols = [
+                "id",
                 "actionType",
                 "elementName",
                 "elementCompanyShortName",
@@ -168,19 +169,52 @@ def dfTable(parent, dataList, selectedCols, layout="completa"):
                 "configurationDesc",
                 "thermalStateId",
                 "validate",  # "validate" is used to highlight rows that are validated.
-                "error", # "error" is used to highlight rows that have errors.
+                "error",  # "error" is used to highlight rows that have errors.
             ]
 
-    sourceIndex = wantedCols.index("source")
-    validateIndex = wantedCols.index("validate")
-    errorIndex = wantedCols.index("error")
     colsExisting = []
     for col in df.columns:
         if col in wantedCols:
             colsExisting.append(col)
 
+    sourceIndex = colsExisting.index("source")
+    validateIndex = wantedCols.index("validate")
+    errorIndex = wantedCols.index("error")
+
+    if len(list(colsExisting)) == len(wantedCols):
+        validateIndex = colsExisting.index("validate")
+        errorIndex = colsExisting.index("error")
+
     # print('Columnas rec: ', list(colsExisting))
     newDf = df[colsExisting].copy()
+
+    return [wantedCols, sourceIndex, validateIndex, errorIndex, newDf]
+
+
+def dfTable(parent, dataList, selectedCols, layout="completa"):
+    """Create a DataFrame table in a Tkinter window using ttk.Treeview and pandas."""
+
+    # print('dataList: ', dataList);
+    dataList = formatList(dataList)  # Formateando lista de datos.
+    # numElements = len(dataList)
+    hScrollBar = Scrollbar(parent, orient="horizontal")
+    # HScrollBar.grid(row=5, column=0, rowspan=1, columnspan=9, sticky='ew');
+    vScrollBar = Scrollbar(parent, orient="vertical")
+
+    tree = ttk.Treeview(
+        parent,
+        show=["headings"],
+        xscrollcommand=hScrollBar.set,
+        yscrollcommand=vScrollBar.set,
+    )  ## "headings" to not show tree (additional column).
+    # print('Columnas: ', list(df.columns));
+
+    hScrollBar.config(command=tree.xview)
+    vScrollBar.config(command=tree.yview)
+
+    [wantedCols, sourceIndex, validateIndex, errorIndex, newDf] = identifyColsToDisplay(
+        dataList, layout, selectedCols
+    )
 
     tree["columns"] = list(newDf.columns)
     for col in newDf.columns:
@@ -190,27 +224,34 @@ def dfTable(parent, dataList, selectedCols, layout="completa"):
     maxHeight = 25
     tree.configure(height=maxHeight)
     # tree.column('#0', width=10) ## Auto additional column to show tree.
+    tagName = ""
     for _, row in newDf.iterrows():
 
         # print('Fila: ', list(row));
         # print('Campo: ', list(row)[0]);
         # print('Campo: ', list(row)[sourceIndex]);
-        if (len(list(row)) == len(wantedCols)) and list(row)[validateIndex]:
-            tree.insert("", END, values=list(row), tags="Validate")
-        elif list(row)[sourceIndex] == "Agente" or list(row)[0] == "":
-            tree.insert("", END, values=list(row), tags="Agent")
-        elif list(row)[sourceIndex] == "CND":
-            tree.insert("", END, values=list(row), tags="CND")
-        else:
-            tree.insert("", END, values=list(row), tags="NoSource")
-        
-        if (len(list(row)) == len(wantedCols)) and list(row)[errorIndex]:
-            tree.insert("", END, values=list(row), tags="error")
 
+        if list(row)[0] == "":
+            tagName = "Agent"
+        elif list(row)[sourceIndex] == "Agente":
+            tagName = "Agent"
+        elif list(row)[sourceIndex] == "CND":
+            tagName = "CND"
+        else:
+            tagName = "NoSource"
+
+        if len(list(row)) == len(wantedCols):
+            if list(row)[validateIndex]:
+                tagName = "Validate"
+            elif list(row)[errorIndex]:
+                tagName = "error"
+
+        tree.insert("", END, values=list(row), tags=tagName)
+        tagName = ""
         tree.tag_configure("CND", background="#eeeeee")  # Light grey
         tree.tag_configure("NoSource", background="darkgrey")
         tree.tag_configure("Validate", background="lightgreen")
-        tree.tag_configure("error", background="red")  
+        tree.tag_configure("error", background="red")
         ##84de80
         # print('newDf.iterrows: ', newDf.iterrows());
         # tree.pack(expand=True, fill="both")

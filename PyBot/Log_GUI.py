@@ -1,4 +1,4 @@
-"""This module handles login GUI operations for user authentication."""
+"""This module handles login GUI operations for user authentication."""  # pylint: disable=invalid-name
 
 from tkinter import Button, Entry, Label, StringVar, Tk
 

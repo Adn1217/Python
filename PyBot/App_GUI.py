@@ -1,5 +1,4 @@
-"""This module handles the main application logic, including GUI initialization
-and backend configuration."""
+"""This module handles the main app logic including GUI initialization and backend configuration."""  # pylint: disable=invalid-name
 
 # import tkinter as tkinter
 import time
@@ -14,8 +13,8 @@ class App:
 
     # backend = backEnd('dev', 8000)
     def __init__(self, backend):
-        self.grantedUser = ""
-        self.isGranted = False
+        self.granted_user = ""
+        self.is_granted = False
         # self._backend = backend
         self.backend = backend
         # print('Backend', self.backend)
@@ -35,23 +34,23 @@ class App:
         self._backend = value
 
     @property
-    def grantedUser(self):
+    def granted_user(self):
         """Property to get the granted user."""
-        return self._grantedUser
+        return self._granted_user
 
-    @grantedUser.setter
-    def grantedUser(self, user):
+    @granted_user.setter
+    def granted_user(self, user):
         """Setter for the granted user."""
-        self._grantedUser = user
+        self._granted_user = user
 
     @property
-    def isGranted(self):
+    def is_granted(self):
         """Property to get the isGranted status."""
-        return self._isGranted
+        return self._is_granted
 
-    @isGranted.setter
-    def isGranted(self, value):
-        self._isGranted = value
+    @is_granted.setter
+    def is_granted(self, value):
+        self._is_granted = value
         self.when_isgranted_is_changed(value)
 
     def login_gui(self):
@@ -60,17 +59,17 @@ class App:
 
     def consult_gui(self):
         """Initialize the consult GUI with the backend."""
-        ConsultGUI(self.backend, self.grantedUser)
+        ConsultGUI(self.backend, self.granted_user)
 
     def update_granted_user(self, grantedUser):
         """Update the granted user and print the user for debug."""
-        self.grantedUser = grantedUser
-        print("Granted User: ", self.grantedUser)
+        self.granted_user = grantedUser
+        print("Granted User: ", self.granted_user)
 
     def update_is_granted(self, isGranted):
         """Update the isGranted status and print the status for debug."""
-        self.isGranted = isGranted
-        print("¿User Granted? ", self.isGranted)
+        self.is_granted = isGranted
+        print("¿User Granted? ", self.is_granted)
 
     def when_isgranted_is_changed(self, isGranted):
         """Callback when isGranted status changes."""
