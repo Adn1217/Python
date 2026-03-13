@@ -611,6 +611,9 @@ class ConsultGUI:
 
     def save_custom_cols(self, client, collection, infoLabel, infoText, doc=None):
         """Save the custom columns document to the collection."""
+        if doc is None:
+            doc = {"user": self.granted_user, "columns": self.selected_cols}
+
         if isinstance(client, MongoClient):
             try:
                 insertAck = collection.insert_one(doc)
@@ -731,7 +734,7 @@ class ConsultGUI:
                                 text="Aceptar",
                                 command=lambda: [
                                     self.save_custom_cols(
-                                        client, collection, infoLabel, infoText, doc
+                                        client, collection, infoLabel, infoText
                                     ),
                                     window.destroy(),
                                 ],
@@ -767,8 +770,8 @@ class ConsultGUI:
                         "red",
                     )
                     print("Ha ocurrido error de Mongo: ", e)
-                finally:
-                    client.close()
+                # finally:
+                #     client.close()
         else:
             if self.db_server_url and self.db_name and self.db_collection_name:
                 dbUrl = self.db_server_url
