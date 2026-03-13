@@ -425,7 +425,11 @@ class ConsultGUI:
             # Access a DB (creates it if it doesn't exist) and Collections
             # doc = {"user": user, "columns": selectedCols}
             # wConcern = {"writeConcern": {"w": "majority", "j": True, "wtimeout": 2000}}
-            if isinstance(client, MongoClient) and self.db_name and self.db_collection_name:
+            if (
+                isinstance(client, MongoClient)
+                and self.db_name
+                and self.db_collection_name
+            ):
                 db = client[self.db_name]
                 collection = db[self.db_collection_name]
                 try:
@@ -453,7 +457,7 @@ class ConsultGUI:
                                 command=lambda: [
                                     window.destroy(),
                                     self.update_custom_cols(
-                                        client, collection,  infoLabel, infoText, doc
+                                        client, collection, infoLabel, infoText, doc
                                     ),
                                 ],
                             )
@@ -466,8 +470,12 @@ class ConsultGUI:
                                 ],
                             )
 
-                            confirmButton.grid(row=3, column=0, rowspan=1, padx=10, pady=10)
-                            cancelButton.grid(row=3, column=1, rowspan=1, padx=10, pady=10)
+                            confirmButton.grid(
+                                row=3, column=0, rowspan=1, padx=10, pady=10
+                            )
+                            cancelButton.grid(
+                                row=3, column=1, rowspan=1, padx=10, pady=10
+                            )
                         else:
                             self.save_custom_cols(
                                 client, collection, infoLabel, infoText, doc
@@ -487,9 +495,9 @@ class ConsultGUI:
                 dbFileName = self.db_name + ".json"
                 collection = self.db_collection_name
                 try:
-                    dbFilePath = dbUrl +  dbFileName
+                    dbFilePath = dbUrl + dbFileName
                     # print("DB save File Path: ", dbFilePath)
-                    
+
                     with open(dbFilePath, "r", encoding="utf-8") as file:
                         data = json.load(file)
                         # print("Data loaded from file: ", data)
@@ -497,7 +505,7 @@ class ConsultGUI:
                         filteredUser = [
                             item
                             for item in data[collection]
-                                if item.get("user") == self.granted_user
+                            if item.get("user") == self.granted_user
                         ]
                         if len(filteredUser) > 0:
                             window = Toplevel()
@@ -528,8 +536,12 @@ class ConsultGUI:
                                 ],
                             )
 
-                            confirmButton.grid(row=3, column=0, rowspan=1, padx=10, pady=10)
-                            cancelButton.grid(row=3, column=1, rowspan=1, padx=10, pady=10)
+                            confirmButton.grid(
+                                row=3, column=0, rowspan=1, padx=10, pady=10
+                            )
+                            cancelButton.grid(
+                                row=3, column=1, rowspan=1, padx=10, pady=10
+                            )
                         else:
                             self.save_custom_cols(
                                 dbFilePath, collection, infoLabel, infoText, doc
@@ -541,7 +553,10 @@ class ConsultGUI:
                         "Error al guardar las columnas personalizadas en el servidor.",
                         "red",
                     )
-                    print("Ha ocurrido error al guardar las columnas personalizadas en el servidor: ", e)
+                    print(
+                        "Ha ocurrido error al guardar las columnas personalizadas en el servidor: ",
+                        e,
+                    )
 
     def update_custom_cols(self, client, collection, infoLabel, infoText, doc=None):
         """Save the custom columns document to the collection."""
@@ -574,10 +589,12 @@ class ConsultGUI:
                     for item in data[collection]:
                         if item.get("user") == self.granted_user:
                             item["columns"] = self.selected_cols
-                        file.seek(0) 
+                        file.seek(0)
                         file.truncate()
                         json.dump(data, file, ensure_ascii=False, indent=4)
-                        if isinstance(infoLabel, Label) and isinstance(infoText, StringVar):
+                        if isinstance(infoLabel, Label) and isinstance(
+                            infoText, StringVar
+                        ):
                             msg = "Columnas seleccionadas actualizadas correctamente."
                             self.update_infolabel(infoLabel, infoText, msg)
                         print("Columnas seleccionadas actualizadas correctamente.")
@@ -586,8 +603,10 @@ class ConsultGUI:
                     color = "red"
                     msg = "Error al guardar las columnas seleccionadas en el servidor."
                     self.update_infolabel(infoLabel, infoText, msg, color)
-                print("Ha ocurrido error al guardar las columnas seleccionadas en el servidor: ", e)
-
+                print(
+                    "Ha ocurrido error al guardar las columnas seleccionadas en el servidor: ",
+                    e,
+                )
 
     def save_custom_cols(self, client, collection, infoLabel, infoText, doc=None):
         """Save the custom columns document to the collection."""
@@ -629,8 +648,10 @@ class ConsultGUI:
                     color = "red"
                     msg = "Error al guardar las columnas seleccionadas en el servidor."
                     self.update_infolabel(infoLabel, infoText, msg, color)
-                print("Ha ocurrido error al guardar las columnas seleccionadas en el servidor: ", e)
-
+                print(
+                    "Ha ocurrido error al guardar las columnas seleccionadas en el servidor: ",
+                    e,
+                )
 
     def get_mongo_client(self, infoLabel, infoText) -> MongoClient | None:
         """Get a MongoDB client if the URI is configured."""
@@ -667,7 +688,7 @@ class ConsultGUI:
     def execute_load_custom_cols(self, user, infoLabel, infoText):
         """
         Execute the loading process of the selected custom columns.
-        
+
         :param user: user granted
         :param infoLabel: Label to show info messages
         :param infoText: Text widget to show info messages
@@ -677,7 +698,11 @@ class ConsultGUI:
         if self.selected_db == "Atlas":
             client = self.get_mongo_client(infoLabel, infoText)
 
-            if isinstance(client, MongoClient) and self.db_name and self.db_collection_name:
+            if (
+                isinstance(client, MongoClient)
+                and self.db_name
+                and self.db_collection_name
+            ):
                 db = client[self.db_name]
                 collection = db[self.db_collection_name]
                 try:
@@ -716,11 +741,17 @@ class ConsultGUI:
                                 command=window.destroy,
                             )
 
-                            confirmButton.grid(row=3, column=0, rowspan=1, padx=10, pady=10)
-                            cancelButton.grid(row=3, column=1, rowspan=1, padx=10, pady=10)
+                            confirmButton.grid(
+                                row=3, column=0, rowspan=1, padx=10, pady=10
+                            )
+                            cancelButton.grid(
+                                row=3, column=1, rowspan=1, padx=10, pady=10
+                            )
                         else:
                             self.load_custom_cols(
-                                savedCols=savedCols, infoLabel=infoLabel, infoText=infoText
+                                savedCols=savedCols,
+                                infoLabel=infoLabel,
+                                infoText=infoText,
                             )
                     else:
                         self.load_custom_cols(
@@ -743,10 +774,10 @@ class ConsultGUI:
                 dbFileName = self.db_name + ".json"
                 collection = self.db_collection_name
                 try:
-                    dbFilePath = dbUrl +  dbFileName
-                    
+                    dbFilePath = dbUrl + dbFileName
+
                     # print("DB File Path: ", dbFilePath)
-                    
+
                     with open(dbFilePath, "r", encoding="utf-8") as f:
                         data = json.load(f)
                         # print("Data loaded from file: ", data)
@@ -754,10 +785,14 @@ class ConsultGUI:
                         filteredUser = [
                             item
                             for item in data[collection]
-                                if item.get("user") == self.granted_user
+                            if item.get("user") == self.granted_user
                         ]
                         if len(filteredUser) > 0:
-                            savedCols = filteredUser[0]["columns"] if "columns" in filteredUser[0].keys() else []
+                            savedCols = (
+                                filteredUser[0]["columns"]
+                                if "columns" in filteredUser[0].keys()
+                                else []
+                            )
                         else:
                             savedCols = None
                         if savedCols is None or len(filteredUser) == 0:
@@ -787,11 +822,17 @@ class ConsultGUI:
                                 command=window.destroy,
                             )
 
-                            confirmButton.grid(row=3, column=0, rowspan=1, padx=10, pady=10)
-                            cancelButton.grid(row=3, column=1, rowspan=1, padx=10, pady=10)
+                            confirmButton.grid(
+                                row=3, column=0, rowspan=1, padx=10, pady=10
+                            )
+                            cancelButton.grid(
+                                row=3, column=1, rowspan=1, padx=10, pady=10
+                            )
                         else:
                             self.load_custom_cols(
-                                savedCols=savedCols, infoLabel=infoLabel, infoText=infoText
+                                savedCols=savedCols,
+                                infoLabel=infoLabel,
+                                infoText=infoText,
                             )
                 except OSError as e:
                     self.update_infolabel(
@@ -800,7 +841,10 @@ class ConsultGUI:
                         "Error al cargar las columnas personalizadas del servidor.",
                         "red",
                     )
-                    print("Ha ocurrido error al cargar las columnas personalizadas del servidor: ", e)
+                    print(
+                        "Ha ocurrido error al cargar las columnas personalizadas del servidor: ",
+                        e,
+                    )
 
     def load_custom_cols(self, **kwargs):
         """Load the custom columns from a file or database."""
@@ -1102,21 +1146,39 @@ class ConsultGUI:
         sourceDbLabelText = StringVar()
         sourceDbLabelText.set("BD: ")
         sourceDbLabel = Label(
-            customFieldsTab, textvariable=sourceDbLabelText, font=("Helvetica", 10, "bold")
+            customFieldsTab,
+            textvariable=sourceDbLabelText,
+            font=("Helvetica", 10, "bold"),
         )
         sourceDbLabel.grid(
             row=1, column=2, columnspan=1, rowspan=1, pady=(10, 0), sticky="E"
         )
-        
+
         selectedDb = StringVar()  # Ambos por defecto
         selectedDb.set("Servidor")  # Set default value
-        
+
         radioButtonServer = Radiobutton(
-            customFieldsTab, text="Servidor", variable=selectedDb, value="Servidor", command=lambda: self.on_db_radio_change(selectedDb.get()) if self.selected_db != "Servidor"  else None
+            customFieldsTab,
+            text="Servidor",
+            variable=selectedDb,
+            value="Servidor",
+            command=lambda: (
+                self.on_db_radio_change(selectedDb.get())
+                if self.selected_db != "Servidor"
+                else None
+            ),
         )
 
         radioButtonCloud = Radiobutton(
-            customFieldsTab, text="Nube", variable=selectedDb, value="Atlas", command=lambda: self.on_db_radio_change(selectedDb.get()) if self.selected_db != "Atlas"  else None
+            customFieldsTab,
+            text="Nube",
+            variable=selectedDb,
+            value="Atlas",
+            command=lambda: (
+                self.on_db_radio_change(selectedDb.get())
+                if self.selected_db != "Atlas"
+                else None
+            ),
         )
 
         radioButtonServer.grid(
