@@ -1382,7 +1382,9 @@ class ConsultGUI:
         infoLabelCustomCols = Label(
             customFieldsTab, textvariable=infoTextCustomCols, padx=10, pady=10
         )
-        infoLabelCustomCols.grid(row=14, column=1, columnspan=3, pady=(0,10), sticky="W")
+        infoLabelCustomCols.grid(
+            row=14, column=1, columnspan=4, pady=(0, 10), sticky="W"
+        )
 
         if (
             (self.mongo_db_uri is None)
