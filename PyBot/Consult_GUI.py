@@ -558,7 +558,7 @@ class ConsultGUI:
                         e,
                     )
 
-    def update_custom_cols(self, client, collection, infoLabel, infoText, doc=None):
+    def update_custom_cols(self, client, collection, infoLabel, infoText, doc):
         """Save the custom columns document to the collection."""
         if isinstance(client, MongoClient):
             try:
