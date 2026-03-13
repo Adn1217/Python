@@ -6,3 +6,4 @@ sampleData.json
 sampleToken.json
 .vscode/
 *.code-workspace
+*.json
