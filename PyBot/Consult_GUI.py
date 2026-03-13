@@ -4,6 +4,7 @@ import json
 import os
 import threading
 from datetime import date, datetime
+from pathlib import Path
 from tkinter import (BooleanVar, Button, Checkbutton, Frame, Label,
                      Radiobutton, StringVar, Tk, Toplevel, filedialog,
                      messagebox, ttk)
@@ -632,9 +633,9 @@ class ConsultGUI:
                 dbFilePath = client
                 with open(dbFilePath, "r+", encoding="utf-8") as file:
                     data = json.load(file)
-                    print("New data to save: ", data)
                     # with open(file.name, "w", encoding="utf-8") as f:
-                    newDoc = {"user": self.granted_user, "columns": self.selected_cols}
+                    newDoc = doc
+                    print("New data to save: ", newDoc)
                     data[collection].append(newDoc)
                     file.seek(0)
                     file.truncate()
@@ -809,10 +810,12 @@ class ConsultGUI:
                                 window,
                                 text="Aceptar",
                                 command=lambda: [
-                                    print("Funcionalidad de columnas personalizadas no implementada aún."),
-                                    # self.save_custom_cols(
-                                    #     client, collection, infoLabel, infoText,
-                                    # ),
+                                    self.save_custom_cols(
+                                        dbFilePath,
+                                        collection,
+                                        infoLabel,
+                                        infoText,
+                                    ),
                                     window.destroy(),
                                 ],
                             )
@@ -845,6 +848,18 @@ class ConsultGUI:
                         "Ha ocurrido error al cargar las columnas personalizadas del servidor: ",
                         e,
                     )
+            else:
+                self.update_infolabel(
+                    infoLabel,
+                    infoText,
+                    "Error al cargar columnas personalizadas del servidor. "
+                    "Ubicación no configurada.",
+                    "red",
+                )
+                print(
+                    "Ha ocurrido error al cargar las columnas personalizadas del servidor. "
+                    "URL o nombre de BD o colección no configurados."
+                )
 
     def load_custom_cols(self, **kwargs):
         """Load the custom columns from a file or database."""
@@ -926,8 +941,11 @@ class ConsultGUI:
         self.selected_date = date.today()
         self.col_var_dict = {}
         self.selected_layout = "completa"  # Default layout
-        self.selected_db= "Servidor"  # Default col database
-        self.db_server_url = os.getenv("URL_SERVER")
+        self.selected_db = "Servidor"  # Default col database
+        if backend.env == "prod":
+            self.db_server_url = os.getenv("URL_SERVER")
+        else:
+            self.db_server_url = str(Path(__file__).resolve().parent) + "//"
         self.db_name = os.getenv("MONGODB_DB_NAME")
         self.db_collection_name = os.getenv("MONGODB_COL_COLLECTION_NAME")
         self.mongo_db_uri = os.getenv("MONGODB_URL")
