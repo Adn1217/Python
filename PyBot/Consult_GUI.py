@@ -140,7 +140,7 @@ class ConsultGUI:
         selectedDateStr = calendar.get_date()  # .strftime("%Y-%m-%D");
         selectedDateObj = datetime.strptime(selectedDateStr, "%m/%d/%y")
         fselectedDate = selectedDateObj.strftime("%Y-%m-%d")
-        self.selected_date = selectedDateObj
+        # self.selected_date = selectedDateObj
         print("Fecha seleccionada: ", fselectedDate)
         # selectedDate2= date.strptime(selectedDate, )
         dateText.set(fselectedDate)
@@ -148,6 +148,35 @@ class ConsultGUI:
 
     def select_date_window(self, dateText, selectedDate):
         """Open a new window to select a date."""
+
+        def print_sel(event):
+            self.num_selected_dates += 1
+            numSelection = self.num_selected_dates
+            self.selected_date = calendar.selection_get()
+            selectedDate = self.selected_date
+            print("Fecha seleccionada: ", selectedDate)
+            # print(calendar.tag_names())
+            if numSelection >= 3:
+                calendar.tag_delete("sel")
+                calendar.tag_config("sel", background="orange", foreground="black")
+                self.num_selected_dates = 1
+                numSelection = 1
+
+            if numSelection < 3:
+                if numSelection == 1:
+                    calendar.calevent_create(
+                        selectedDate, "Fecha inicio seleccionada", "sel"
+                    )
+                    self.selected_date = calendar.selection_get()
+                    self.selected_end_date = self.selected_date
+                    print("Fecha inicio seleccionada: ", self.selected_date)
+                if numSelection == 2:
+                    calendar.calevent_create(
+                        selectedDate, "Fecha fin seleccionada", "sel"
+                    )
+                    self.selected_end_date = selectedDate
+                    print("Fecha fin seleccionada: ", self.selected_date)
+
         window = Toplevel()
         # frm = Frame(window, padx=5);
         # frm.grid();
@@ -163,6 +192,8 @@ class ConsultGUI:
             day=selectedDate.day,
         )
         calendar.grid(row=1, column=1, rowspan=3, padx=10, pady=10)
+        calendar.tag_config("sel", background="orange", foreground="black")
+        calendar.bind("<<CalendarSelected>>", print_sel)
         selectDateButton2 = Button(
             window,
             text="Seleccionar",
@@ -941,7 +972,9 @@ class ConsultGUI:
         # self.withdraw(); #Hidden.
         load_dotenv()
         self.granted_user = grantedUser
+        self.num_selected_dates = 0
         self.selected_date = date.today()
+        self.selected_end_date = date.today()
         self.col_var_dict = {}
         self.selected_layout = "completa"  # Default layout
         self.selected_db = "Servidor"  # Default col database
