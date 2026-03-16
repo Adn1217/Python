@@ -84,7 +84,9 @@ class BackEnd:
             self._token = {"error": err}
             return self._token
 
-    def get_data(self, date, selectedSource="todos", customColsReq = False ) -> dict:
+    def get_data(
+        self, date1, date2, selectedSource="todos", customColsReq=False
+    ) -> dict:
         """Get data from the backend based on the provided date."""
         ##TODO: Implement custom columns functionality and Env variables for file DB (prod:server, dev:local file)
         if not customColsReq:
@@ -107,8 +109,8 @@ class BackEnd:
                 # dFec = dt.datetime.strptime(self.ui.entFecha.text(), "%Y-%m-%d")
                 # dCsl = dFec.strftime('%Y-%m-%d')
                 jsonPayload = {
-                    "dateFrom": date + " 00:00",
-                    "dateTo": date + " 23:59:00",
+                    "dateFrom": date1 + " 00:00",
+                    "dateTo": date2 + " 23:59:00",
                     "statusIds": [],
                     "systems": [],
                     "elementIds": [],
@@ -116,7 +118,9 @@ class BackEnd:
                     "elementTypeIds": [],
                     "actionTypeIds": [],
                     "originPanelIds": [],
-                    "sourceCND": "true" if selectedSource in ["CND", "todos"] else "false",
+                    "sourceCND": (
+                        "true" if selectedSource in ["CND", "todos"] else "false"
+                    ),
                     "sourceAgents": (
                         "true" if selectedSource in ["agentes", "todos"] else "false"
                     ),
@@ -179,7 +183,9 @@ class BackEnd:
                 resp = {"error": "Autenticación expirada. Vuelva a autenticarse."}
             # print(f'GetData response: {resp}');
         else:
-            resp = {"error": "Funcionalidad de columnas personalizadas no implementada aún."}
+            resp = {
+                "error": "Funcionalidad de columnas personalizadas no implementada aún."
+            }
         return resp
 
     def log_in(self, userEntry, pswEntry):
