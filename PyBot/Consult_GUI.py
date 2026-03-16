@@ -33,6 +33,7 @@ class ConsultGUI:
         """Try to get data from the backend and update the GUI."""
         backend = keywords["backend"]
         selectedDate = keywords["selectedDate"]
+        selectedEndDate = keywords["selectedEndDate"]
         infoLabel = keywords["infoLabel"]
         infoText = keywords["infoText"]
         numActionsText = keywords["numActionsText"]
@@ -40,10 +41,16 @@ class ConsultGUI:
         disabledButtons = keywords["disabledButtons"]
         # selectedSource = "todos"
         selectedSource = keywords["selectedSource"]
-        msg = f"Realizando consulta de {selectedSource} para el {selectedDate}..."
+
+        if selectedDate == selectedEndDate:
+            msg = f"Realizando consulta de {selectedSource} para el {selectedDate}..."
+        else:
+            msg = f"Realizando consulta de {selectedSource} entre el {selectedDate} y el {selectedEndDate}..."
+
         self.update_infolabel(infoLabel, infoText, msg)
         print(f"Realizando consulta de {selectedSource} para el {selectedDate}...")
-        consultDate = selectedDate
+        consultDate1 = selectedDate
+        consultDate2 = selectedEndDate
         threading.Thread(
             # TODO: Optimize threading to avoid passing too many arguments. Separate update table segment.
             target=self.execute_consult,
@@ -59,7 +66,8 @@ class ConsultGUI:
             # ),
             kwargs={
                 "backend": backend,
-                "consultDate": consultDate,
+                "consultDate1": consultDate1,
+                "consultDate2": consultDate2,
                 "infoLabel": infoLabel,
                 "infoText": infoText,
                 "numActionsText": numActionsText,
@@ -82,7 +90,8 @@ class ConsultGUI:
     ):
         """Execute the consultation to the backend and update the GUI."""
         backend = keywords["backend"]
-        consultDate = keywords["consultDate"]
+        consultDate1 = keywords["consultDate1"]
+        consultDate2 = keywords["consultDate2"]
         infoLabel = keywords["infoLabel"]
         infoText = keywords["infoText"]
         numActionsText = keywords["numActionsText"]
@@ -90,9 +99,13 @@ class ConsultGUI:
         disabledButtons = keywords["disabledButtons"]
         selectedSource = keywords["selectedSource"]
 
-        data = backend.get_data(consultDate, selectedSource)
+        data = backend.get_data(consultDate1, consultDate2, selectedSource)
         # data = []
-        msg = f"Consulta del {consultDate}."
+        if consultDate1 == consultDate2:
+            msg = f"Resultados consulta del {consultDate1}."
+        else:
+            msg = f"Resultados consulta entre el {consultDate1} y el {consultDate2}."
+
         infoText.set(msg)
         if len(data) == 1:
             msg2 = f"{len(data)} registro de {selectedSource}."
@@ -135,25 +148,31 @@ class ConsultGUI:
         for button in buttonSet:
             button.configure(state=state)
 
-    def select_date_and_exit(self, window, calendar, dateText):
+    def select_date_and_exit(self, window, calendar, dateText1, dateText2):
         """Select the date from the calendar and close the window."""
-        selectedDateStr = calendar.get_date()  # .strftime("%Y-%m-%D");
-        selectedDateObj = datetime.strptime(selectedDateStr, "%m/%d/%y")
-        fselectedDate = selectedDateObj.strftime("%Y-%m-%d")
+        # selectedDateStr = calendar.get_date()  # .strftime("%Y-%m-%D");
+        selectedDateObj1 = self.selected_date
+        # selectedDateObj1 = datetime.strptime(selectedDateStr1, "%m/%d/%y")
+        fselectedDate1 = selectedDateObj1.strftime("%Y-%m-%d")
+        selectedDateObj2 = self.selected_end_date
+        # selectedDateObj2 = datetime.strptime(selectedDateStr2, "%m/%d/%y")
+        fselectedDate2 = selectedDateObj2.strftime("%Y-%m-%d")
         # self.selected_date = selectedDateObj
-        print("Fecha seleccionada: ", fselectedDate)
+        print("Fecha inicial seleccionada: ", fselectedDate1)
+        print("Fecha final seleccionada: ", fselectedDate2)
         # selectedDate2= date.strptime(selectedDate, )
-        dateText.set(fselectedDate)
+        dateText1.set(fselectedDate1)
+        dateText2.set(fselectedDate2)
         window.destroy()
 
-    def select_date_window(self, dateText, selectedDate):
+    def select_date_window(self, dateText1, selectedDate, dateText2):
         """Open a new window to select a date."""
 
         def print_sel(event):
             self.num_selected_dates += 1
             numSelection = self.num_selected_dates
             selectedDate = calendar.selection_get()
-            print("Fecha seleccionada: ", selectedDate)
+            # print("Fecha seleccionada: ", selectedDate)
             # print(calendar.tag_names())
             if numSelection >= 3:
                 calendar.tag_delete("sel")
@@ -168,13 +187,13 @@ class ConsultGUI:
                     )
                     self.selected_date = calendar.selection_get()
                     self.selected_end_date = calendar.selection_get()
-                    print("Fecha inicio seleccionada: ", self.selected_date)
+                    # print("Fecha inicio seleccionada: ", self.selected_date)
                 if numSelection == 2:
                     calendar.calevent_create(
                         selectedDate, "Fecha fin seleccionada", "sel"
                     )
                     self.selected_end_date = selectedDate
-                    print("Fecha fin seleccionada: ", self.selected_end_date)
+                    # print("Fecha fin seleccionada: ", self.selected_end_date)
                     if (
                         self.selected_date is not None
                         and self.selected_end_date is not None
@@ -223,7 +242,9 @@ class ConsultGUI:
         selectDateButton2 = Button(
             window,
             text="Seleccionar",
-            command=lambda: self.select_date_and_exit(window, calendar, dateText),
+            command=lambda: self.select_date_and_exit(
+                window, calendar, dateText1, dateText2
+            ),
         )
         selectDateButton2.grid(row=4, column=1, rowspan=1, padx=10, pady=10)
 
@@ -1083,20 +1104,30 @@ class ConsultGUI:
         )  # Add the custom fields tabs
         tabControl.grid(row=0, column=0, rowspan=1, padx=10, pady=10, sticky="W")
 
-        dateLabel = Label(consultTab, text="Fecha: ", padx=10)
+        dateLabel = Label(consultTab, text="Fecha inicial: ", padx=10)
         dateLabel.grid(row=1, column=0, sticky="W")
 
-        dateText = StringVar()
-        dateText.set(str(self.selected_date))
-        dateTextLabel = Label(consultTab, textvariable=dateText, padx=10, fg="blue")
+        dateText1 = StringVar()
+        dateText1.set(str(self.selected_date))
+        dateTextLabel = Label(consultTab, textvariable=dateText1, padx=10, fg="blue")
         dateTextLabel.grid(row=1, column=1, columnspan=1, sticky="W")
+
+        dateLabel = Label(consultTab, text="Fecha final: ", padx=10)
+        dateLabel.grid(row=1, column=2, sticky="W")
+
+        dateText2 = StringVar()
+        dateText2.set(str(self.selected_end_date))
+        dateText2Label = Label(consultTab, textvariable=dateText2, padx=10, fg="blue")
+        dateText2Label.grid(row=1, column=3, columnspan=1, sticky="W")
 
         selectDateButton = Button(
             consultTab,
             text="Seleccionar",
-            command=lambda: self.select_date_window(dateText, self.selected_date),
+            command=lambda: self.select_date_window(
+                dateText1, self.selected_date, dateText2
+            ),
         )
-        selectDateButton.grid(row=1, column=2, rowspan=1, padx=10, pady=10, sticky="W")
+        selectDateButton.grid(row=1, column=4, rowspan=1, padx=10, pady=10, sticky="W")
 
         selectedSource = StringVar()  # Ambos por defecto
         selectedSource.set("todos")  # Set default value
@@ -1201,7 +1232,8 @@ class ConsultGUI:
             text="Consultar",
             command=lambda: self.try_get(
                 backend=backend,
-                selectedDate=dateText.get(),
+                selectedDate=dateText1.get(),
+                selectedEndDate=dateText2.get(),
                 infoLabel=infoLabel,
                 infoText=infoText,
                 numActionsText=numActionsText,
