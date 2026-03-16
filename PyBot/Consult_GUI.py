@@ -3,7 +3,7 @@
 import json
 import os
 import threading
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from tkinter import (BooleanVar, Button, Checkbutton, Frame, Label,
                      Radiobutton, StringVar, Tk, Toplevel, filedialog,
@@ -152,8 +152,7 @@ class ConsultGUI:
         def print_sel(event):
             self.num_selected_dates += 1
             numSelection = self.num_selected_dates
-            self.selected_date = calendar.selection_get()
-            selectedDate = self.selected_date
+            selectedDate = calendar.selection_get()
             print("Fecha seleccionada: ", selectedDate)
             # print(calendar.tag_names())
             if numSelection >= 3:
@@ -168,14 +167,41 @@ class ConsultGUI:
                         selectedDate, "Fecha inicio seleccionada", "sel"
                     )
                     self.selected_date = calendar.selection_get()
-                    self.selected_end_date = self.selected_date
+                    self.selected_end_date = calendar.selection_get()
                     print("Fecha inicio seleccionada: ", self.selected_date)
                 if numSelection == 2:
                     calendar.calevent_create(
                         selectedDate, "Fecha fin seleccionada", "sel"
                     )
                     self.selected_end_date = selectedDate
-                    print("Fecha fin seleccionada: ", self.selected_date)
+                    print("Fecha fin seleccionada: ", self.selected_end_date)
+                    if (
+                        self.selected_date is not None
+                        and self.selected_end_date is not None
+                    ):
+                        if self.selected_date > self.selected_end_date:
+                            self.selected_date, self.selected_end_date = (
+                                self.selected_end_date,
+                                self.selected_date,
+                            )
+                            print(
+                                "Fechas intercambiadas. Fecha inicio: ",
+                                self.selected_date,
+                            )
+                            print(
+                                "Fechas intercambiadas. Fecha fin: ",
+                                self.selected_end_date,
+                            )
+
+                        # print("Fecha inicio seleccionada: ", self.selected_date)
+                        # print("Fecha fin seleccionada: ", self.selected_end_date)
+                        daysDiff = (self.selected_end_date - self.selected_date).days
+                        # print("Días de diferencia entre fechas: ", daysDiff)
+                        for day in range(daysDiff + 1):
+                            dateToSelect = self.selected_date + timedelta(days=day)
+                            calendar.calevent_create(
+                                dateToSelect, "Fecha seleccionada", "sel"
+                            )
 
         window = Toplevel()
         # frm = Frame(window, padx=5);
