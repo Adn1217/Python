@@ -418,7 +418,11 @@ class ConsultGUI:
 
     def export(self, infoText, infoLabel, dataList):
         """Export operational records to a xlsx file."""
-        outputFileName = "RegistrosSIO_" + str(self.selected_date) + ".xlsx"
+        if self.selected_date == self.selected_end_date:
+            consultDateStr = self.selected_date
+        else:
+            consultDateStr = f"{self.selected_date}_a_{self.selected_end_date}"
+        outputFileName = "RegistrosSIO_" + str(consultDateStr) + ".xlsx"
         fdataList = formatList(dataList)
         [*_, df] = identifyColsToDisplay(
             fdataList, self.selected_layout, self.selected_cols
@@ -436,7 +440,7 @@ class ConsultGUI:
             try:
                 if not filePath.lower().endswith(".csv"):
                     df.to_excel(
-                        filePath, index=False, sheet_name=str(self.selected_date)
+                        filePath, index=False, sheet_name=str(consultDateStr)
                     )
                 else:
                     df.to_csv(filePath, index=False, sep=",")
