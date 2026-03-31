@@ -84,98 +84,98 @@ class BackEnd:
             self._token = {"error": err}
             return self._token
 
-    def get_data(self, date, selectedSource="todos"):
+    def get_data(
+        self, date1, date2, selectedSource="todos", customColsReq=False
+    ) -> dict:
         """Get data from the backend based on the provided date."""
-        token = self._token
-        # print('Token usado: ', Token);
-        # baseUrl = os.getenv("MANEUVER_URL"); ### PRODUCTIVO
-        # baseUrl = f"http://localhost:{self.port}/"; ### -------- PRUEBAS --------------
-        # proxies = {'https':'http://'+userText+':'+pswText+'@proxy-xm:8080'}
-        endpoint = str(os.getenv("ACTIONS_ENDPOINT"))
-        actionsNumber = 10000
-        url = str(self.base_actions_url) + endpoint
-        # print(f'url: {url}')
-        headers = CaseInsensitiveDict()
-        headers["accept"] = "*/*"
-        headers["Content-Type"] = "application/json"
-        if "token" in token.keys():
-            headers = {"Authorization": "Bearer " + str(token["token"])}
-            # baseUrl = os.getenv("MANEUVER_URL");
-            # endpoint = os.getenv("ACTION_ENDPOINT");
-            # dFec = dt.datetime.strptime(self.ui.entFecha.text(), "%Y-%m-%d")
-            # dCsl = dFec.strftime('%Y-%m-%d')
-            jsonPayload = {
-                "dateFrom": date + " 00:00",
-                "dateTo": date + " 23:59:00",
-                "statusIds": [],
-                "systems": [],
-                "elementIds": [],
-                "elementCompanyNames": [],
-                "elementTypeIds": [],
-                "actionTypeIds": [],
-                "originPanelIds": [],
-                "sourceCND": "true" if selectedSource in ["CND", "todos"] else "false",
-                "sourceAgents": (
-                    "true" if selectedSource in ["agentes", "todos"] else "false"
-                ),
-                "limitTo": actionsNumber,
-                "showCneZniElementDetail": "true",
-            }
-            # payload = json.dumps(JSONpayload);
-            if self.env == "prod":
-                response = requests.post(
-                    url, headers=headers, json=jsonPayload, timeout=50
-                )  ### PRODUCTIVO #json para usar json, data para usar cadena de string.
+        ##TODO: Implement custom columns functionality and Env variables for file DB (prod:server, dev:local file)
+        if not customColsReq:
+            token = self._token
+            # print('Token usado: ', Token);
+            # baseUrl = os.getenv("MANEUVER_URL"); ### PRODUCTIVO
+            # baseUrl = f"http://localhost:{self.port}/"; ### -------- PRUEBAS --------------
+            # proxies = {'https':'http://'+userText+':'+pswText+'@proxy-xm:8080'}
+            endpoint = str(os.getenv("ACTIONS_ENDPOINT"))
+            actionsNumber = 10000
+            url = str(self.base_actions_url) + endpoint
+            # print(f'url: {url}')
+            headers = CaseInsensitiveDict()
+            headers["accept"] = "*/*"
+            headers["Content-Type"] = "application/json"
+            if "token" in token.keys():
+                headers = {"Authorization": "Bearer " + str(token["token"])}
+                # baseUrl = os.getenv("MANEUVER_URL");
+                # endpoint = os.getenv("ACTION_ENDPOINT");
+                # dFec = dt.datetime.strptime(self.ui.entFecha.text(), "%Y-%m-%d")
+                # dCsl = dFec.strftime('%Y-%m-%d')
+                jsonPayload = {
+                    "dateFrom": date1 + " 00:00",
+                    "dateTo": date2 + " 23:59:00",
+                    "statusIds": [],
+                    "systems": [],
+                    "elementIds": [],
+                    "elementCompanyNames": [],
+                    "elementTypeIds": [],
+                    "actionTypeIds": [],
+                    "originPanelIds": [],
+                    "sourceCND": (
+                        "true" if selectedSource in ["CND", "todos"] else "false"
+                    ),
+                    "sourceAgents": (
+                        "true" if selectedSource in ["agentes", "todos"] else "false"
+                    ),
+                    "limitTo": actionsNumber,
+                    "showCneZniElementDetail": "true",
+                }
+                # payload = json.dumps(JSONpayload);
+                if self.env == "prod":
+                    response = requests.post(
+                        url, headers=headers, json=jsonPayload, timeout=50
+                    )  ### PRODUCTIVO #json para usar json, data para usar cadena de string.
+                else:
+                    if selectedSource == "agentes":
+                        selectedSource = "Agente"
+                    params = {"source": selectedSource}
+                    response = requests.get(
+                        url, timeout=50, params=params
+                    )  ### -------- PRUEBAS --------------
+                if response.status_code == 200:
+                    resp = response.json()
+                else:
+                    resp = {"error": f"Se ha presentado error {response.status_code}"}
+                    print(f"Se ha presentado error {response.status_code}")
+                # print("Atributos: ", resp[0].keys());
+                # Atributos disponibles:
+                # ['id', 'actionTypeId', 'actionType', 'flowId', 'flow',
+                # 'flowConsecutive', 'scheduledStartDate', 'elementId', 'elementTypeId',
+                # 'elementName', 'elementCompanyName', 'elementCompanyShortName', 'instructionTime',
+                # 'occurrenceTime', 'confirmationTime', 'causeStatusId', 'causeStatus',
+                # 'consignmentId', 'causeChangeAvailabilityId', 'causeChangeAvailability',
+                # 'newAvailability', 'elementCausingId', 'causeSuspendedExecutionId',
+                # 'causeSuspendedExecution', 'fileDocumentNumber', 'associatedActionId',
+                # 'causeOperationalId', 'causeOperational', 'controlVQId', 'controlVQ',
+                # 'teleprotectionId', 'teleprotection', 'finalElement', 'percentage',
+                # 'instructionTimeChecked', 'occurrenceTimeChecked', 'confirmationTimeChecked',
+                # 'order','parentTimeActionId', 'parentTypeTimeAssociatedId',
+                # 'parentTypeTimeAssociated', 'typeTimeAssociatedId', 'typeTimeAssociated',
+                # 'withPriorAuthorization','isVoltageControl','hidden','description',
+                # 'verificationNote', 'statusTypeId', 'statusType', 'locked', 'lockedByActionId',
+                # 'system', 'originPanelId', 'originPanel', 'causeOrigin', 'causeDetailCno',
+                # 'additionalFieldsValue', 'dashboardOrderingDate', 'espId', 'espName',
+                # 'espElementId', 'creationTime', 'filterActionOrderingDate', 'unavailableActionId',
+                # 'subSystemUnavailableAction', 'cneZone', 'fuel', 'fuelName', 'fuelCEN','plantCEN',
+                # 'qualityScheme', 'notification', 'reverseNotificationGenerated', 'source',
+                # 'disableAvailabilityField', 'dna', 'userValidator', 'configurationId',
+                # 'configurationDesc', 'thermalStateId', 'descriptionAdditional']
             else:
-                if selectedSource == "agentes":
-                    selectedSource = "Agente"
-                params = {"source": selectedSource}
-                response = requests.get(
-                    url, timeout=50, params=params
-                )  ### -------- PRUEBAS --------------
-            if response.status_code == 200:
-                resp = response.json()
-            else:
-                resp = {"error": f"Se ha presentado error {response.status_code}"}
-                print(f"Se ha presentado error {response.status_code}")
-            # print("Atributos: ", resp[0].keys());
-            # Atributos disponibles:
-            # ['id', 'actionTypeId', 'actionType', 'flowId', 'flow',
-            # 'flowConsecutive', 'scheduledStartDate', 'elementId', 'elementTypeId',
-            # 'elementName', 'elementCompanyName', 'elementCompanyShortName', 'instructionTime',
-            # 'occurrenceTime', 'confirmationTime', 'causeStatusId', 'causeStatus', 'consignmentId',
-            # 'causeChangeAvailabilityId', 'causeChangeAvailability', 'newAvailability',
-            # 'elementCausingId', 'causeSuspendedExecutionId', 'causeSuspendedExecution',
-            # 'fileDocumentNumber', 'associatedActionId', 'causeOperationalId', 'causeOperational',
-            # 'controlVQId', 'controlVQ', 'teleprotectionId', 'teleprotection', 'finalElement',
-            # 'percentage', 'instructionTimeChecked', 'occurrenceTimeChecked',
-            # 'confirmationTimeChecked', 'order','parentTimeActionId', 'parentTypeTimeAssociatedId',
-            # 'parentTypeTimeAssociated', 'typeTimeAssociatedId', 'typeTimeAssociated',
-            # 'withPriorAuthorization','isVoltageControl','hidden','description','verificationNote',
-            # 'statusTypeId', 'statusType', 'locked', 'lockedByActionId', 'system', 'originPanelId',
-            # 'originPanel', 'causeOrigin', 'causeDetailCno', 'additionalFieldsValue',
-            # 'dashboardOrderingDate', 'espId', 'espName', 'espElementId', 'creationTime',
-            # 'filterActionOrderingDate', 'unavailableActionId', 'subSystemUnavailableAction',
-            # 'cneZone', 'fuel', 'fuelName', 'fuelCEN', 'plantCEN', 'qualityScheme', 'notification',
-            # 'reverseNotificationGenerated', 'source', 'disableAvailabilityField', 'dna',
-            # 'userValidator', 'configurationId', 'configurationDesc', 'thermalStateId',
-            # 'descriptionAdditional']
-            # Atributos de interés:
-            # ['id', 'actionTypeId', 'actionType', 'flowId', 'flow', 'flowConsecutive',
-            # 'scheduledStartDate', 'elementId', 'elementName', 'elementCompanyShortName',
-            # 'instructionTime', 'occurrenceTime', 'confirmationTime','causeStatus','consignmentId'
-            # , 'causeChangeAvailability','newAvailability','elementCausingId', 'causeOperational',
-            # 'percentage', 'order', 'withPriorAuthorization', 'isVoltageControl', 'description',
-            # 'verificationNote','statusType','system','originPanel','causeOrigin','causeDetailCno',
-            # 'additionalFieldsValue', 'espName', 'espElementId', 'creationTime',
-            # 'unavailableActionId', 'subSystemUnavailableAction', 'cneZone', 'fuel', 'fuelName',
-            # 'fuelCEN', 'plantCEN', 'qualityScheme', 'source','dna', 'userValidator',
-            # 'configurationDesc', 'thermalStateId', 'descriptionAdditional']
+                # resp = json.dumps({"error": "Autenticación expirada. Vuelva a autenticarse."},
+                # indent=4, sort_keys=True, ensure_ascii=False);
+                resp = {"error": "Autenticación expirada. Vuelva a autenticarse."}
+            # print(f'GetData response: {resp}');
         else:
-            # resp = json.dumps({"error": "Autenticación expirada. Vuelva a autenticarse."},
-            # indent=4, sort_keys=True, ensure_ascii=False);
-            resp = {"error": "Autenticación expirada. Vuelva a autenticarse."}
-        # print(f'GetData response: {resp}');
+            resp = {
+                "error": "Funcionalidad de columnas personalizadas no implementada aún."
+            }
         return resp
 
     def log_in(self, userEntry, pswEntry):

@@ -1,8 +1,10 @@
 """This module handles GUI operations for consulting a database using Tkinter."""
 
+import json
 import os
 import threading
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
+from pathlib import Path
 from tkinter import (BooleanVar, Button, Checkbutton, Frame, Label,
                      Radiobutton, StringVar, Tk, Toplevel, filedialog,
                      messagebox, ttk)
@@ -31,6 +33,7 @@ class ConsultGUI:
         """Try to get data from the backend and update the GUI."""
         backend = keywords["backend"]
         selectedDate = keywords["selectedDate"]
+        selectedEndDate = keywords["selectedEndDate"]
         infoLabel = keywords["infoLabel"]
         infoText = keywords["infoText"]
         numActionsText = keywords["numActionsText"]
@@ -38,10 +41,16 @@ class ConsultGUI:
         disabledButtons = keywords["disabledButtons"]
         # selectedSource = "todos"
         selectedSource = keywords["selectedSource"]
-        msg = f"Realizando consulta de {selectedSource} para el {selectedDate}..."
+
+        if selectedDate == selectedEndDate:
+            msg = f"Realizando consulta de {selectedSource} para el {selectedDate}..."
+        else:
+            msg = f"Realizando consulta de {selectedSource} entre el {selectedDate} y el {selectedEndDate}..."
+
         self.update_infolabel(infoLabel, infoText, msg)
         print(f"Realizando consulta de {selectedSource} para el {selectedDate}...")
-        consultDate = selectedDate
+        consultDate1 = selectedDate
+        consultDate2 = selectedEndDate
         threading.Thread(
             # TODO: Optimize threading to avoid passing too many arguments. Separate update table segment.
             target=self.execute_consult,
@@ -57,7 +66,8 @@ class ConsultGUI:
             # ),
             kwargs={
                 "backend": backend,
-                "consultDate": consultDate,
+                "consultDate1": consultDate1,
+                "consultDate2": consultDate2,
                 "infoLabel": infoLabel,
                 "infoText": infoText,
                 "numActionsText": numActionsText,
@@ -80,7 +90,8 @@ class ConsultGUI:
     ):
         """Execute the consultation to the backend and update the GUI."""
         backend = keywords["backend"]
-        consultDate = keywords["consultDate"]
+        consultDate1 = keywords["consultDate1"]
+        consultDate2 = keywords["consultDate2"]
         infoLabel = keywords["infoLabel"]
         infoText = keywords["infoText"]
         numActionsText = keywords["numActionsText"]
@@ -88,9 +99,13 @@ class ConsultGUI:
         disabledButtons = keywords["disabledButtons"]
         selectedSource = keywords["selectedSource"]
 
-        data = backend.get_data(consultDate, selectedSource)
+        data = backend.get_data(consultDate1, consultDate2, selectedSource)
         # data = []
-        msg = f"Consulta del {consultDate}."
+        if consultDate1 == consultDate2:
+            msg = f"Resultados consulta del {consultDate1}."
+        else:
+            msg = f"Resultados consulta entre el {consultDate1} y el {consultDate2}."
+
         infoText.set(msg)
         if len(data) == 1:
             msg2 = f"{len(data)} registro de {selectedSource}."
@@ -133,19 +148,80 @@ class ConsultGUI:
         for button in buttonSet:
             button.configure(state=state)
 
-    def select_date_and_exit(self, window, calendar, dateText):
+    def select_date_and_exit(self, window, calendar, dateText1, dateText2):
         """Select the date from the calendar and close the window."""
-        selectedDateStr = calendar.get_date()  # .strftime("%Y-%m-%D");
-        selectedDateObj = datetime.strptime(selectedDateStr, "%m/%d/%y")
-        fselectedDate = selectedDateObj.strftime("%Y-%m-%d")
-        self.selected_date = selectedDateObj
-        print("Fecha seleccionada: ", fselectedDate)
+        # selectedDateStr = calendar.get_date()  # .strftime("%Y-%m-%D");
+        selectedDateObj1 = self.selected_date
+        # selectedDateObj1 = datetime.strptime(selectedDateStr1, "%m/%d/%y")
+        fselectedDate1 = selectedDateObj1.strftime("%Y-%m-%d")
+        selectedDateObj2 = self.selected_end_date
+        # selectedDateObj2 = datetime.strptime(selectedDateStr2, "%m/%d/%y")
+        fselectedDate2 = selectedDateObj2.strftime("%Y-%m-%d")
+        # self.selected_date = selectedDateObj
+        print("Fecha inicial seleccionada: ", fselectedDate1)
+        print("Fecha final seleccionada: ", fselectedDate2)
         # selectedDate2= date.strptime(selectedDate, )
-        dateText.set(fselectedDate)
+        dateText1.set(fselectedDate1)
+        dateText2.set(fselectedDate2)
         window.destroy()
 
-    def select_date_window(self, dateText, selectedDate):
+    def select_date_window(self, dateText1, selectedDate, dateText2):
         """Open a new window to select a date."""
+
+        def print_sel(event):
+            self.num_selected_dates += 1
+            numSelection = self.num_selected_dates
+            selectedDate = calendar.selection_get()
+            # print("Fecha seleccionada: ", selectedDate)
+            # print(calendar.tag_names())
+            if numSelection >= 3:
+                calendar.tag_delete("sel")
+                calendar.tag_config("sel", background="orange", foreground="black")
+                self.num_selected_dates = 1
+                numSelection = 1
+
+            if numSelection < 3:
+                if numSelection == 1:
+                    calendar.calevent_create(
+                        selectedDate, "Fecha inicio seleccionada", "sel"
+                    )
+                    self.selected_date = calendar.selection_get()
+                    self.selected_end_date = calendar.selection_get()
+                    # print("Fecha inicio seleccionada: ", self.selected_date)
+                if numSelection == 2:
+                    calendar.calevent_create(
+                        selectedDate, "Fecha fin seleccionada", "sel"
+                    )
+                    self.selected_end_date = selectedDate
+                    # print("Fecha fin seleccionada: ", self.selected_end_date)
+                    if (
+                        self.selected_date is not None
+                        and self.selected_end_date is not None
+                    ):
+                        if self.selected_date > self.selected_end_date:
+                            self.selected_date, self.selected_end_date = (
+                                self.selected_end_date,
+                                self.selected_date,
+                            )
+                            print(
+                                "Fechas intercambiadas. Fecha inicio: ",
+                                self.selected_date,
+                            )
+                            print(
+                                "Fechas intercambiadas. Fecha fin: ",
+                                self.selected_end_date,
+                            )
+
+                        # print("Fecha inicio seleccionada: ", self.selected_date)
+                        # print("Fecha fin seleccionada: ", self.selected_end_date)
+                        daysDiff = (self.selected_end_date - self.selected_date).days
+                        # print("Días de diferencia entre fechas: ", daysDiff)
+                        for day in range(daysDiff + 1):
+                            dateToSelect = self.selected_date + timedelta(days=day)
+                            calendar.calevent_create(
+                                dateToSelect, "Fecha seleccionada", "sel"
+                            )
+
         window = Toplevel()
         # frm = Frame(window, padx=5);
         # frm.grid();
@@ -161,10 +237,14 @@ class ConsultGUI:
             day=selectedDate.day,
         )
         calendar.grid(row=1, column=1, rowspan=3, padx=10, pady=10)
+        calendar.tag_config("sel", background="orange", foreground="black")
+        calendar.bind("<<CalendarSelected>>", print_sel)
         selectDateButton2 = Button(
             window,
             text="Seleccionar",
-            command=lambda: self.select_date_and_exit(window, calendar, dateText),
+            command=lambda: self.select_date_and_exit(
+                window, calendar, dateText1, dateText2
+            ),
         )
         selectDateButton2.grid(row=4, column=1, rowspan=1, padx=10, pady=10)
 
@@ -175,6 +255,11 @@ class ConsultGUI:
             self.update_table(parent, self.data_list, self.selected_layout)
             # print("Radio button changed")
 
+    def on_db_radio_change(self, selectedDB):
+        """Callback function for database radio button change."""
+        self.selected_db = selectedDB
+        print("Selected DB: ", self.selected_db)
+
     def on_checkbox_click(self, recoverCheckbox):
         """Callback function for checkbox click."""
         # print("Checkbox clicked")
@@ -184,7 +269,7 @@ class ConsultGUI:
             if colVar.get() != ""
         ]
         recoverCheckbox.configure(state="disabled")
-        print("Selected columns: ", self.selected_cols)
+        # print("Selected columns: ", self.selected_cols)
         # self.update_table(frame, self.dataList, self.selectedLayout)
 
     def on_all_checkbox_click(self, allColVar, recoverCheckbox):
@@ -333,7 +418,11 @@ class ConsultGUI:
 
     def export(self, infoText, infoLabel, dataList):
         """Export operational records to a xlsx file."""
-        outputFileName = "RegistrosSIO_" + str(self.selected_date) + ".xlsx"
+        if self.selected_date == self.selected_end_date:
+            consultDateStr = self.selected_date
+        else:
+            consultDateStr = f"{self.selected_date}_a_{self.selected_end_date}"
+        outputFileName = "RegistrosSIO_" + str(consultDateStr) + ".xlsx"
         fdataList = formatList(dataList)
         [*_, df] = identifyColsToDisplay(
             fdataList, self.selected_layout, self.selected_cols
@@ -350,9 +439,7 @@ class ConsultGUI:
             print(f"Descargando registros a: {filePath}")
             try:
                 if not filePath.lower().endswith(".csv"):
-                    df.to_excel(
-                        filePath, index=False, sheet_name=str(self.selected_date)
-                    )
+                    df.to_excel(filePath, index=False, sheet_name=str(consultDateStr))
                 else:
                     df.to_csv(filePath, index=False, sep=",")
 
@@ -387,13 +474,11 @@ class ConsultGUI:
         customColsDict = kwargs.get("customCols", [])
         infoLabel = kwargs.get("infoLabel", None)
         infoText = kwargs.get("infoText", None)
-        selectedCols = [
-            colVar.get() for _, colVar in customColsDict.items() if colVar.get() != ""
-        ]
+        # selectedCols = [
+        #     colVar.get() for _, colVar in customColsDict.items() if colVar.get() != ""
+        # ]
+        selectedCols = self.selected_cols
         # print("Selected columns: ", selectedCols)
-        # with open("selected_columns.txt", "w") as f:
-        #     for col in selectedCols:
-        #         f.write(f"{col}\n")
 
         msg = f"Guardando columnas personalizadas del usuario {user}..."
         self.update_infolabel(infoLabel, infoText, msg)
@@ -404,108 +489,253 @@ class ConsultGUI:
         ).start()
 
     def execute_save_custom_cols(self, user, infoLabel, infoText, selectedCols):
-        client = self.get_mongo_client(infoLabel, infoText)
+        """
+        Execute the saving process of the selected custom columns.
 
-        # Access a DB (creates it if it doesn't exist) and Collections
+        :param user: user granted
+        :param infoLabel: Label to show info messages
+        :param infoText: Text widget to show info messages
+        :param selectedCols: List of selected columns
+        """
+        ##TODO: Refactor to control env errors in backend.
+        ##TODO: Refactor to reduce duplicated code.
         doc = {"user": user, "columns": selectedCols}
-        # wConcern = {"writeConcern": {"w": "majority", "j": True, "wtimeout": 2000}}
-        if isinstance(client, MongoClient) and self.db_name and self.db_collection_name:
-            db = client[self.db_name]
-            collection = db[self.db_collection_name]
-            try:
-                # Send a ping to confirm a successful connection
-                ack = client.admin.command("ping")
-                if ack["ok"] == 1:
-                    print(
-                        "Pinged your deployment. You successfully connected to MongoDB!"
-                    )
-                    query = {"user": user}  # Example query to find the user
-                    numDocs = collection.count_documents(query)
-                    if numDocs > 0:
-                        window = Toplevel()
-                        window.title("Confirmar")
-                        # window.geometry("600x400");
-                        info = (
-                            f"El usuario {user} ya tiene columnas personalizadas guardadas.\n"
-                            "¿Desea sobrescribirlas?"
-                        )
-                        confirmationLabel = Label(window, text=info, padx=10)
-                        confirmationLabel.grid(row=0, column=0, columnspan=2)
-                        confirmButton = Button(
-                            window,
-                            text="Aceptar",
-                            command=lambda: [
-                                window.destroy(),
-                                self.update_custom_cols(
-                                    client, collection, doc, infoLabel, infoText
-                                ),
-                            ],
-                        )
-                        cancelButton = Button(
-                            window,
-                            text="Cancelar",
-                            command=lambda: [
-                                window.destroy(),
-                                self.update_infolabel(infoLabel, infoText, ""),
-                            ],
-                        )
+        if self.selected_db == "Atlas":
+            client = self.get_mongo_client(infoLabel, infoText)
 
-                        confirmButton.grid(row=3, column=0, rowspan=1, padx=10, pady=10)
-                        cancelButton.grid(row=3, column=1, rowspan=1, padx=10, pady=10)
-                    else:
-                        self.save_custom_cols(
-                            client, collection, doc, infoLabel, infoText
+            # Access a DB (creates it if it doesn't exist) and Collections
+            # doc = {"user": user, "columns": selectedCols}
+            # wConcern = {"writeConcern": {"w": "majority", "j": True, "wtimeout": 2000}}
+            if (
+                isinstance(client, MongoClient)
+                and self.db_name
+                and self.db_collection_name
+            ):
+                db = client[self.db_name]
+                collection = db[self.db_collection_name]
+                try:
+                    # Send a ping to confirm a successful connection
+                    ack = client.admin.command("ping")
+                    if ack["ok"] == 1:
+                        print(
+                            "Pinged your deployment. You successfully connected to MongoDB!"
                         )
-                else:
+                        query = {"user": user}  # Example query to find the user
+                        numDocs = collection.count_documents(query)
+                        if numDocs > 0:
+                            window = Toplevel()
+                            window.title("Confirmar")
+                            # window.geometry("600x400");
+                            info = (
+                                f"El usuario {user} ya tiene columnas personalizadas guardadas.\n"
+                                "¿Desea sobrescribirlas?"
+                            )
+                            confirmationLabel = Label(window, text=info, padx=10)
+                            confirmationLabel.grid(row=0, column=0, columnspan=2)
+                            confirmButton = Button(
+                                window,
+                                text="Aceptar",
+                                command=lambda: [
+                                    window.destroy(),
+                                    self.update_custom_cols(
+                                        client, collection, infoLabel, infoText, doc
+                                    ),
+                                ],
+                            )
+                            cancelButton = Button(
+                                window,
+                                text="Cancelar",
+                                command=lambda: [
+                                    window.destroy(),
+                                    self.update_infolabel(infoLabel, infoText, ""),
+                                ],
+                            )
+
+                            confirmButton.grid(
+                                row=3, column=0, rowspan=1, padx=10, pady=10
+                            )
+                            cancelButton.grid(
+                                row=3, column=1, rowspan=1, padx=10, pady=10
+                            )
+                        else:
+                            self.save_custom_cols(
+                                client, collection, infoLabel, infoText, doc
+                            )
+                    else:
+                        self.update_infolabel(
+                            infoLabel, infoText, "La BD de Mongo no responde", "red"
+                        )
+                        print("Mongo DB deployment is not reachable (ack = 0).")
+                except PyMongoError as e:
+                    msg = "Error de Mongo al guardar las columnas seleccionadas."
+                    self.update_infolabel(infoLabel, infoText, msg, "red")
+                    print("Ha ocurrido error de Mongo: ", e)
+        else:
+            if self.db_server_url and self.db_name and self.db_collection_name:
+                dbUrl = self.db_server_url
+                dbFileName = self.db_name + ".json"
+                collection = self.db_collection_name
+                try:
+                    dbFilePath = dbUrl + dbFileName
+                    # print("DB save File Path: ", dbFilePath)
+
+                    with open(dbFilePath, "r", encoding="utf-8") as file:
+                        data = json.load(file)
+                        # print("Data loaded from file: ", data)
+                        # print("users:", data[collection])
+                        filteredUser = [
+                            item
+                            for item in data[collection]
+                            if item.get("user") == self.granted_user
+                        ]
+                        if len(filteredUser) > 0:
+                            window = Toplevel()
+                            window.title("Confirmar")
+                            # window.geometry("600x400");
+                            info = (
+                                f"El usuario {user} ya tiene columnas personalizadas guardadas.\n"
+                                "¿Desea sobrescribirlas?"
+                            )
+                            confirmationLabel = Label(window, text=info, padx=10)
+                            confirmationLabel.grid(row=0, column=0, columnspan=2)
+                            confirmButton = Button(
+                                window,
+                                text="Aceptar",
+                                command=lambda: [
+                                    window.destroy(),
+                                    self.update_custom_cols(
+                                        dbFilePath, collection, infoLabel, infoText, doc
+                                    ),
+                                ],
+                            )
+                            cancelButton = Button(
+                                window,
+                                text="Cancelar",
+                                command=lambda: [
+                                    window.destroy(),
+                                    self.update_infolabel(infoLabel, infoText, ""),
+                                ],
+                            )
+
+                            confirmButton.grid(
+                                row=3, column=0, rowspan=1, padx=10, pady=10
+                            )
+                            cancelButton.grid(
+                                row=3, column=1, rowspan=1, padx=10, pady=10
+                            )
+                        else:
+                            self.save_custom_cols(
+                                dbFilePath, collection, infoLabel, infoText, doc
+                            )
+                except OSError as e:
                     self.update_infolabel(
-                        infoLabel, infoText, "La BD de Mongo no responde", "red"
+                        infoLabel,
+                        infoText,
+                        "Error al guardar las columnas personalizadas en el servidor.",
+                        "red",
                     )
-                    print("Mongo DB deployment is not reachable (ack = 0).")
+                    print(
+                        "Ha ocurrido error al guardar las columnas personalizadas en el servidor: ",
+                        e,
+                    )
+
+    def update_custom_cols(self, client, collection, infoLabel, infoText, doc):
+        """Save the custom columns document to the collection."""
+        if isinstance(client, MongoClient):
+            try:
+                updateAck = collection.update_one(
+                    {"user": doc["user"]}, {"$set": {"columns": doc["columns"]}}
+                )
+                # print("updateAck: ", updateAck)
+                if updateAck.acknowledged:
+                    print("Documents updated: ", updateAck.modified_count)
+                    if isinstance(infoLabel, Label) and isinstance(infoText, StringVar):
+                        msg = "Columnas seleccionadas actualizadas correctamente."
+                        self.update_infolabel(infoLabel, infoText, msg)
+                    print("Columnas seleccionadas actualizadas correctamente.")
+            except PyMongoError as e:
+                if isinstance(infoLabel, Label) and isinstance(infoText, StringVar):
+                    color = "red"
+                    msg = "Error de Mongo al guardar las columnas seleccionadas."
+                    self.update_infolabel(infoLabel, infoText, msg, color)
+                print("Ha ocurrido error de Mongo: ", e)
+            finally:
+                client.close()
+        else:
+            try:
+                print("doc: ", doc)
+                dbFilePath = client
+                with open(dbFilePath, "r+", encoding="utf-8") as file:
+                    data = json.load(file)
+                    for item in data[collection]:
+                        if item.get("user") == self.granted_user:
+                            item["columns"] = self.selected_cols
+                        file.seek(0)
+                        file.truncate()
+                        json.dump(data, file, ensure_ascii=False, indent=4)
+                        if isinstance(infoLabel, Label) and isinstance(
+                            infoText, StringVar
+                        ):
+                            msg = "Columnas seleccionadas actualizadas correctamente."
+                            self.update_infolabel(infoLabel, infoText, msg)
+                        print("Columnas seleccionadas actualizadas correctamente.")
+            except OSError as e:
+                if isinstance(infoLabel, Label) and isinstance(infoText, StringVar):
+                    color = "red"
+                    msg = "Error al guardar las columnas seleccionadas en el servidor."
+                    self.update_infolabel(infoLabel, infoText, msg, color)
+                print(
+                    "Ha ocurrido error al guardar las columnas seleccionadas en el servidor: ",
+                    e,
+                )
+
+    def save_custom_cols(self, client, collection, infoLabel, infoText, doc=None):
+        """Save the custom columns document to the collection."""
+        if doc is None:
+            doc = {"user": self.granted_user, "columns": self.selected_cols}
+
+        if isinstance(client, MongoClient):
+            try:
+                insertAck = collection.insert_one(doc)
+                print(insertAck)
+                if insertAck.acknowledged:
+                    print("Document inserted with id: ", insertAck.inserted_id)
+                if isinstance(infoLabel, Label) and isinstance(infoText, StringVar):
+                    msg = "Columnas seleccionadas guardadas correctamente."
+                    self.update_infolabel(infoLabel, infoText, msg)
+                print("Columnas seleccionadas guardadas correctamente.")
             except PyMongoError as e:
                 msg = "Error de Mongo al guardar las columnas seleccionadas."
-                self.update_infolabel(infoLabel, infoText, msg, "red")
-                print("Ha ocurrido error de Mongo: ", e)
-
-    def update_custom_cols(self, client, collection, doc, infoLabel, infoText):
-        """Save the custom columns document to the collection."""
-        try:
-            updateAck = collection.update_one(
-                {"user": doc["user"]}, {"$set": {"columns": doc["columns"]}}
-            )
-            # print("updateAck: ", updateAck)
-            if updateAck.acknowledged:
-                print("Documents updated: ", updateAck.modified_count)
                 if isinstance(infoLabel, Label) and isinstance(infoText, StringVar):
-                    msg = "Columnas seleccionadas actualizadas correctamente."
-                    self.update_infolabel(infoLabel, infoText, msg)
-                print("Columnas seleccionadas actualizadas correctamente.")
-        except PyMongoError as e:
-            if isinstance(infoLabel, Label) and isinstance(infoText, StringVar):
-                color = "red"
-                msg = "Error de Mongo al guardar las columnas seleccionadas."
-                self.update_infolabel(infoLabel, infoText, msg, color)
-            print("Ha ocurrido error de Mongo: ", e)
-        finally:
-            client.close()
-
-    def save_custom_cols(self, client, collection, doc, infoLabel, infoText):
-        """Save the custom columns document to the collection."""
-        try:
-            insertAck = collection.insert_one(doc)
-            print(insertAck)
-            if insertAck.acknowledged:
-                print("Document inserted with id: ", insertAck.inserted_id)
-            if isinstance(infoLabel, Label) and isinstance(infoText, StringVar):
-                msg = "Columnas seleccionadas guardadas correctamente."
-                self.update_infolabel(infoLabel, infoText, msg)
-            print("Columnas seleccionadas guardadas correctamente.")
-        except PyMongoError as e:
-            msg = "Error de Mongo al guardar las columnas seleccionadas."
-            if isinstance(infoLabel, Label) and isinstance(infoText, StringVar):
-                self.update_infolabel(infoLabel, infoText, msg, "red")
-            print("Ha ocurrido error de Mongo: ", e)
-        finally:
-            client.close()
+                    self.update_infolabel(infoLabel, infoText, msg, "red")
+                print("Ha ocurrido error de Mongo: ", e)
+            finally:
+                client.close()
+        else:
+            try:
+                dbFilePath = client
+                with open(dbFilePath, "r+", encoding="utf-8") as file:
+                    data = json.load(file)
+                    # with open(file.name, "w", encoding="utf-8") as f:
+                    newDoc = doc
+                    print("New data to save: ", newDoc)
+                    data[collection].append(newDoc)
+                    file.seek(0)
+                    file.truncate()
+                    json.dump(data, file, ensure_ascii=False, indent=4)
+                    if isinstance(infoLabel, Label) and isinstance(infoText, StringVar):
+                        msg = "Columnas seleccionadas actualizadas correctamente."
+                        self.update_infolabel(infoLabel, infoText, msg)
+                    print("Columnas seleccionadas actualizadas correctamente.")
+            except OSError as e:
+                if isinstance(infoLabel, Label) and isinstance(infoText, StringVar):
+                    color = "red"
+                    msg = "Error al guardar las columnas seleccionadas en el servidor."
+                    self.update_infolabel(infoLabel, infoText, msg, color)
+                print(
+                    "Ha ocurrido error al guardar las columnas seleccionadas en el servidor: ",
+                    e,
+                )
 
     def get_mongo_client(self, infoLabel, infoText) -> MongoClient | None:
         """Get a MongoDB client if the URI is configured."""
@@ -540,68 +770,193 @@ class ConsultGUI:
         ).start()
 
     def execute_load_custom_cols(self, user, infoLabel, infoText):
-        client = self.get_mongo_client(infoLabel, infoText)
+        """
+        Execute the loading process of the selected custom columns.
 
-        if isinstance(client, MongoClient) and self.db_name and self.db_collection_name:
-            db = client[self.db_name]
-            collection = db[self.db_collection_name]
-            try:
-                # Send a ping to confirm a successful connection
-                ack = client.admin.command("ping")
-                if ack["ok"] == 1:
-                    print(
-                        "Pinged your deployment. You successfully connected to MongoDB!"
-                    )
-                    query = {"user": user}  # Example query to find the user
-                    doc = collection.find_one(query)
-                    savedCols = doc["columns"] if doc and "columns" in doc else []
-                    if doc is None:
-                        window = Toplevel()
-                        window.title("Usuario no encontrado")
-                        # window.geometry("600x400");
-                        info = (
-                            f"El usuario {user} NO tiene columnas personalizadas guardadas.\n"
-                            "¿Desea guardar las actualmente seleccionadas?"
-                        )
-                        confirmationLabel = Label(window, text=info, padx=10)
-                        confirmationLabel.grid(row=0, column=0, columnspan=2)
-                        confirmButton = Button(
-                            window,
-                            text="Aceptar",
-                            command=lambda: [
-                                self.save_custom_cols(
-                                    client, collection, doc, infoLabel, infoText
-                                ),
-                                window.destroy(),
-                            ],
-                        )
-                        cancelButton = Button(
-                            window,
-                            text="Cancelar",
-                            command=window.destroy,
-                        )
+        :param user: user granted
+        :param infoLabel: Label to show info messages
+        :param infoText: Text widget to show info messages
+        """
+        ##TODO: Refactor to control env errors in backend.
+        ##TODO: Refactor to reduce duplicated code.
+        if self.selected_db == "Atlas":
+            client = self.get_mongo_client(infoLabel, infoText)
 
-                        confirmButton.grid(row=3, column=0, rowspan=1, padx=10, pady=10)
-                        cancelButton.grid(row=3, column=1, rowspan=1, padx=10, pady=10)
+            if (
+                isinstance(client, MongoClient)
+                and self.db_name
+                and self.db_collection_name
+            ):
+                db = client[self.db_name]
+                collection = db[self.db_collection_name]
+                try:
+                    # Send a ping to confirm a successful connection
+                    ack = client.admin.command("ping")
+                    if ack["ok"] == 1:
+                        print(
+                            "Pinged your deployment. You successfully connected to MongoDB!"
+                        )
+                        query = {"user": user}  # Example query to find the user
+                        doc = collection.find_one(query)
+                        savedCols = doc["columns"] if doc and "columns" in doc else []
+                        if doc is None:
+                            window = Toplevel()
+                            window.title("Usuario no encontrado")
+                            # window.geometry("600x400");
+                            info = (
+                                f"El usuario {user} NO tiene columnas personalizadas guardadas.\n"
+                                "¿Desea guardar las actualmente seleccionadas?"
+                            )
+                            confirmationLabel = Label(window, text=info, padx=10)
+                            confirmationLabel.grid(row=0, column=0, columnspan=2)
+                            confirmButton = Button(
+                                window,
+                                text="Aceptar",
+                                command=lambda: [
+                                    self.save_custom_cols(
+                                        client, collection, infoLabel, infoText
+                                    ),
+                                    window.destroy(),
+                                ],
+                            )
+                            cancelButton = Button(
+                                window,
+                                text="Cancelar",
+                                command=lambda: [
+                                    self.load_custom_cols(
+                                        savedCols=savedCols,
+                                        infoLabel=infoLabel,
+                                        infoText=infoText,
+                                    ),
+                                    window.destroy(),
+                                ],
+                            )
+
+                            confirmButton.grid(
+                                row=3, column=0, rowspan=1, padx=10, pady=10
+                            )
+                            cancelButton.grid(
+                                row=3, column=1, rowspan=1, padx=10, pady=10
+                            )
+                        else:
+                            self.load_custom_cols(
+                                savedCols=savedCols,
+                                infoLabel=infoLabel,
+                                infoText=infoText,
+                            )
                     else:
                         self.load_custom_cols(
-                            savedCols=savedCols, infoLabel=infoLabel, infoText=infoText
+                            infoLabel=infoLabel, infoText=infoText, connectionError=1
                         )
-                else:
-                    self.load_custom_cols(
-                        infoLabel=infoLabel, infoText=infoText, connectionError=1
+                        print("Mongo DB deployment is not reachable (ack = 0).")
+                except PyMongoError as e:
+                    self.update_infolabel(
+                        infoLabel,
+                        infoText,
+                        "Error de Mongo al cargar las columnas personalizadas.",
+                        "red",
                     )
-                    print("Mongo DB deployment is not reachable (ack = 0).")
-            except PyMongoError as e:
+                    print("Ha ocurrido error de Mongo: ", e)
+                # finally:
+                #     client.close()
+        else:
+            if self.db_server_url and self.db_name and self.db_collection_name:
+                dbUrl = self.db_server_url
+                dbFileName = self.db_name + ".json"
+                collection = self.db_collection_name
+                try:
+                    dbFilePath = dbUrl + dbFileName
+
+                    # print("DB File Path: ", dbFilePath)
+
+                    with open(dbFilePath, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                        # print("Data loaded from file: ", data)
+                        # print("user:", data[collection])
+                        filteredUser = [
+                            item
+                            for item in data[collection]
+                            if item.get("user") == self.granted_user
+                        ]
+                        if len(filteredUser) > 0:
+                            savedCols = (
+                                filteredUser[0]["columns"]
+                                if "columns" in filteredUser[0].keys()
+                                else []
+                            )
+                        else:
+                            savedCols = []
+                        if len(filteredUser) == 0:
+                            window = Toplevel()
+                            window.title("Usuario no encontrado")
+                            # window.geometry("600x400");
+                            info = (
+                                f"El usuario {user} NO tiene columnas personalizadas guardadas.\n"
+                                "¿Desea guardar las actualmente seleccionadas?"
+                            )
+                            confirmationLabel = Label(window, text=info, padx=10)
+                            confirmationLabel.grid(row=0, column=0, columnspan=2)
+                            confirmButton = Button(
+                                window,
+                                text="Aceptar",
+                                command=lambda: [
+                                    self.save_custom_cols(
+                                        dbFilePath,
+                                        collection,
+                                        infoLabel,
+                                        infoText,
+                                    ),
+                                    window.destroy(),
+                                ],
+                            )
+                            cancelButton = Button(
+                                window,
+                                text="Cancelar",
+                                command=lambda: [
+                                    self.load_custom_cols(
+                                        savedCols=savedCols,
+                                        infoLabel=infoLabel,
+                                        infoText=infoText,
+                                    ),
+                                    window.destroy(),
+                                ],
+                            )
+
+                            confirmButton.grid(
+                                row=3, column=0, rowspan=1, padx=10, pady=10
+                            )
+                            cancelButton.grid(
+                                row=3, column=1, rowspan=1, padx=10, pady=10
+                            )
+                        else:
+                            self.load_custom_cols(
+                                savedCols=savedCols,
+                                infoLabel=infoLabel,
+                                infoText=infoText,
+                            )
+                except OSError as e:
+                    self.update_infolabel(
+                        infoLabel,
+                        infoText,
+                        "Error al cargar las columnas personalizadas del servidor.",
+                        "red",
+                    )
+                    print(
+                        "Ha ocurrido error al cargar las columnas personalizadas del servidor: ",
+                        e,
+                    )
+            else:
                 self.update_infolabel(
                     infoLabel,
                     infoText,
-                    "Error de Mongo al cargar las columnas personalizadas.",
+                    "Error al cargar columnas personalizadas del servidor. "
+                    "Ubicación no configurada.",
                     "red",
                 )
-                print("Ha ocurrido error de Mongo: ", e)
-            finally:
-                client.close()
+                print(
+                    "Ha ocurrido error al cargar las columnas personalizadas del servidor. "
+                    "URL o nombre de BD o colección no configurados."
+                )
 
     def load_custom_cols(self, **kwargs):
         """Load the custom columns from a file or database."""
@@ -612,37 +967,118 @@ class ConsultGUI:
         infoText = kwargs.get("infoText", None)
         connectionError = kwargs.get("connectionError", 0)
         savedCols = kwargs.get("savedCols", [])
+        defaultCols = []
         if len(savedCols) == 0:
-            # TODO: Change fixed defaultCols for the custom columns loaded from a file or database.
-            defaultCols = [
-                "id",
-                "actionType",
-                "elementId",
-                "elementName",
-                "elementCompanyShortName",
-                "instructionTime",
-                "occurrenceTime",
-                "confirmationTime",
-                "causeStatus",
-                "consignmentId",
-                "causeChangeAvailability",
-                "newAvailability",
-                "elementCausingId",
-                "causeOperational",
-                "percentage",
-                "withPriorAuthorization",
-                "description",
-                "verificationNote",
-                "statusType",
-                "system",
-                "causeOrigin",
-                "causeDetailCno",
-                "validate",  # "validate" is used to highlight rows that are validated.
-            ]
+            if self.selected_db == "Atlas":
+                client = self.get_mongo_client(infoLabel, infoText)
+
+                if (
+                    isinstance(client, MongoClient)
+                    and self.db_name
+                    and self.db_default_cols_name
+                ):
+                    db = client[self.db_name]
+                    collection = db[self.db_default_cols_name]
+                    try:
+                        # Send a ping to confirm a successful connection
+                        ack = client.admin.command("ping")
+                        if ack["ok"] == 1:
+                            print(
+                                "Pinged your deployment. You successfully connected to MongoDB!"
+                            )
+                            # query = {
+                            #     ""
+                            #     + self.db_default_cols_name: self.db_default_cols_name
+                            # }
+                            query = {}  # Find all.
+                            defaultCols = collection.find_one(query)
+                            if defaultCols is None:
+                                defaultCols = []
+                            else:
+                                defaultCols = defaultCols.get(
+                                    self.db_default_cols_name, []
+                                )
+                                print(
+                                    "Columnas por defecto cargadas de Mongo: ",
+                                    defaultCols,
+                                )
+
+                    except PyMongoError as e:
+                        self.update_infolabel(
+                            infoLabel,
+                            infoText,
+                            "Error de Mongo al cargar las columnas por defecto.",
+                            "red",
+                        )
+                        print("Ha ocurrido error de Mongo: ", e)
+
+            if self.selected_db == "Servidor":
+
+                if self.db_server_url and self.db_name and self.db_collection_name:
+
+                    dbUrl = self.db_server_url
+                    dbFileName = self.db_name + ".json"
+                    collection = self.db_default_cols_name
+
+                    try:
+                        dbFilePath = dbUrl + dbFileName
+
+                        with open(dbFilePath, "r", encoding="utf-8") as f:
+                            data = json.load(f)
+                            # print("Data loaded from file: ", data)
+                            # print("user:", data[collection])
+                            defaultCols = data.get(collection, [])
+
+                        if len(defaultCols) > 0:
+                            print(
+                                "Columnas por defecto cargadas de servidor: ",
+                                defaultCols,
+                            )
+
+                    except OSError as e:
+                        self.update_infolabel(
+                            infoLabel,
+                            infoText,
+                            "Error al cargar las columnas por defecto del servidor.",
+                            "red",
+                        )
+                        print(
+                            "Ha ocurrido error al cargar las columnas por defecto del servidor: ",
+                            e,
+                        )
+
+            if not isinstance(defaultCols, list) or len(defaultCols) == 0:
+                defaultCols = [
+                    "id",
+                    "actionType",
+                    "elementId",
+                    "elementName",
+                    "elementCompanyShortName",
+                    "instructionTime",
+                    "occurrenceTime",
+                    "confirmationTime",
+                    "causeStatus",
+                    "consignmentId",
+                    "causeChangeAvailability",
+                    "newAvailability",
+                    "elementCausingId",
+                    "causeOperational",
+                    "percentage",
+                    "withPriorAuthorization",
+                    "description",
+                    "verificationNote",
+                    "statusType",
+                    "system",
+                    "causeOrigin",
+                    "causeDetailCno",
+                    "validate",  # "validate" is used to highlight rows that are validated.
+                ]
+                print("Se cargaron las columnas por defecto desde el código.")
+
             savedCols = defaultCols
             if connectionError == 0:
                 msg = (
-                    "Usuario sin columnas personalizadas guardadas."
+                    "Usuario sin columnas personalizadas guardadas. "
                     "Se cargaron columnas por defecto."
                 )
                 if isinstance(infoLabel, Label) and isinstance(infoText, StringVar):
@@ -680,13 +1116,21 @@ class ConsultGUI:
         # self.withdraw(); #Hidden.
         load_dotenv()
         self.granted_user = grantedUser
+        self.num_selected_dates = 0
         self.selected_date = date.today()
+        self.selected_end_date = date.today()
         self.col_var_dict = {}
         self.selected_layout = "completa"  # Default layout
+        self.selected_db = "Servidor"  # Default col database (Atlas / Servidor)
+        if backend.env == "prod":
+            self.db_server_url = os.getenv("URL_SERVER")
+        else:
+            self.db_server_url = str(Path(__file__).resolve().parent) + "//"
         self.db_name = os.getenv("MONGODB_DB_NAME")
         self.db_collection_name = os.getenv("MONGODB_COL_COLLECTION_NAME")
+        self.db_default_cols_name = os.getenv("MONGODB_DEFAULT_COL_COLLECTION_NAME")
         self.mongo_db_uri = os.getenv("MONGODB_URL")
-        print("Mongo DB URI: ", self.mongo_db_uri)
+        # print("Mongo DB URI: ", self.mongo_db_uri)
 
         wantedCols = [
             "id",
@@ -758,20 +1202,30 @@ class ConsultGUI:
         )  # Add the custom fields tabs
         tabControl.grid(row=0, column=0, rowspan=1, padx=10, pady=10, sticky="W")
 
-        dateLabel = Label(consultTab, text="Fecha: ", padx=10)
+        dateLabel = Label(consultTab, text="Fecha inicial: ", padx=10)
         dateLabel.grid(row=1, column=0, sticky="W")
 
-        dateText = StringVar()
-        dateText.set(str(self.selected_date))
-        dateTextLabel = Label(consultTab, textvariable=dateText, padx=10, fg="blue")
+        dateText1 = StringVar()
+        dateText1.set(str(self.selected_date))
+        dateTextLabel = Label(consultTab, textvariable=dateText1, padx=10, fg="blue")
         dateTextLabel.grid(row=1, column=1, columnspan=1, sticky="W")
+
+        dateLabel = Label(consultTab, text="Fecha final: ", padx=10)
+        dateLabel.grid(row=1, column=2, sticky="W")
+
+        dateText2 = StringVar()
+        dateText2.set(str(self.selected_end_date))
+        dateText2Label = Label(consultTab, textvariable=dateText2, padx=10, fg="blue")
+        dateText2Label.grid(row=1, column=3, columnspan=1, sticky="W")
 
         selectDateButton = Button(
             consultTab,
             text="Seleccionar",
-            command=lambda: self.select_date_window(dateText, self.selected_date),
+            command=lambda: self.select_date_window(
+                dateText1, self.selected_date, dateText2
+            ),
         )
-        selectDateButton.grid(row=1, column=2, rowspan=1, padx=10, pady=10, sticky="W")
+        selectDateButton.grid(row=1, column=4, rowspan=1, padx=10, pady=10, sticky="W")
 
         selectedSource = StringVar()  # Ambos por defecto
         selectedSource.set("todos")  # Set default value
@@ -876,7 +1330,8 @@ class ConsultGUI:
             text="Consultar",
             command=lambda: self.try_get(
                 backend=backend,
-                selectedDate=dateText.get(),
+                selectedDate=dateText1.get(),
+                selectedEndDate=dateText2.get(),
                 infoLabel=infoLabel,
                 infoText=infoText,
                 numActionsText=numActionsText,
@@ -898,19 +1353,65 @@ class ConsultGUI:
         # Custom fields tab for selecting columns to display
         # customFieldsTab.rowconfigure(1, weight=1)
         # customFieldsTab.columnconfigure(0, weight=1)
+        sourceDbLabelText = StringVar()
+        sourceDbLabelText.set("BD: ")
+        sourceDbLabel = Label(
+            customFieldsTab,
+            textvariable=sourceDbLabelText,
+            font=("Helvetica", 10, "bold"),
+        )
+        sourceDbLabel.grid(
+            row=1, column=2, columnspan=1, rowspan=1, pady=(10, 0), sticky="E"
+        )
+
+        selectedDb = StringVar()  # Ambos por defecto
+        selectedDb.set("Servidor")  # Set default value
+
+        radioButtonServer = Radiobutton(
+            customFieldsTab,
+            text="Servidor",
+            variable=selectedDb,
+            value="Servidor",
+            command=lambda: (
+                self.on_db_radio_change(selectedDb.get())
+                if self.selected_db != "Servidor"
+                else None
+            ),
+        )
+
+        radioButtonCloud = Radiobutton(
+            customFieldsTab,
+            text="Nube",
+            variable=selectedDb,
+            value="Atlas",
+            command=lambda: (
+                self.on_db_radio_change(selectedDb.get())
+                if self.selected_db != "Atlas"
+                else None
+            ),
+        )
+
+        radioButtonServer.grid(
+            row=1, column=3, columnspan=1, rowspan=1, pady=(10, 0), sticky="NSEW"
+        )
+
+        radioButtonCloud.grid(
+            row=1, column=4, columnspan=1, rowspan=1, pady=(10, 0), sticky="W"
+        )
+
         colCheckLabelText = StringVar()
         colCheckLabelText.set("Columnas disponibles: ")
         colLabel = Label(
             customFieldsTab,
             textvariable=colCheckLabelText,
-            padx=10,
-            pady=20,
             font=("Helvetica", 10, "bold"),
         )
         colLabel.grid(
-            row=1,
-            column=0,
-            columnspan=5,
+            row=2,
+            column=1,
+            columnspan=4,
+            padx=10,
+            pady=(10, 20),
             sticky="NSEW",
         )
 
@@ -983,7 +1484,7 @@ class ConsultGUI:
             )
             # colCheckButton.select()  # Select the checkbutton by default
             colCheckButton.grid(
-                row=cont + 2, column=1 + numCol, columnspan=1, sticky="W"
+                row=cont + 3, column=1 + numCol, columnspan=1, sticky="W"
             )
 
         allNoneCheckLabelText = StringVar()
@@ -1070,7 +1571,9 @@ class ConsultGUI:
         infoLabelCustomCols = Label(
             customFieldsTab, textvariable=infoTextCustomCols, padx=10, pady=10
         )
-        infoLabelCustomCols.grid(row=14, column=1, columnspan=3, sticky="W")
+        infoLabelCustomCols.grid(
+            row=14, column=1, columnspan=4, pady=(0, 10), sticky="W"
+        )
 
         if (
             (self.mongo_db_uri is None)
