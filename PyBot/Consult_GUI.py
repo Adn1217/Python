@@ -269,7 +269,7 @@ class ConsultGUI:
             if colVar.get() != ""
         ]
         recoverCheckbox.configure(state="disabled")
-        print("Selected columns: ", self.selected_cols)
+        # print("Selected columns: ", self.selected_cols)
         # self.update_table(frame, self.dataList, self.selectedLayout)
 
     def on_all_checkbox_click(self, allColVar, recoverCheckbox):
@@ -439,9 +439,7 @@ class ConsultGUI:
             print(f"Descargando registros a: {filePath}")
             try:
                 if not filePath.lower().endswith(".csv"):
-                    df.to_excel(
-                        filePath, index=False, sheet_name=str(consultDateStr)
-                    )
+                    df.to_excel(filePath, index=False, sheet_name=str(consultDateStr))
                 else:
                     df.to_csv(filePath, index=False, sep=",")
 
@@ -1132,7 +1130,7 @@ class ConsultGUI:
         self.db_collection_name = os.getenv("MONGODB_COL_COLLECTION_NAME")
         self.db_default_cols_name = os.getenv("MONGODB_DEFAULT_COL_COLLECTION_NAME")
         self.mongo_db_uri = os.getenv("MONGODB_URL")
-        print("Mongo DB URI: ", self.mongo_db_uri)
+        # print("Mongo DB URI: ", self.mongo_db_uri)
 
         wantedCols = [
             "id",
