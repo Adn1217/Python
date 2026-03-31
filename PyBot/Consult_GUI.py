@@ -269,7 +269,7 @@ class ConsultGUI:
             if colVar.get() != ""
         ]
         recoverCheckbox.configure(state="disabled")
-        print("Selected columns: ", self.selected_cols)
+        # print("Selected columns: ", self.selected_cols)
         # self.update_table(frame, self.dataList, self.selectedLayout)
 
     def on_all_checkbox_click(self, allColVar, recoverCheckbox):
@@ -418,7 +418,11 @@ class ConsultGUI:
 
     def export(self, infoText, infoLabel, dataList):
         """Export operational records to a xlsx file."""
-        outputFileName = "RegistrosSIO_" + str(self.selected_date) + ".xlsx"
+        if self.selected_date == self.selected_end_date:
+            consultDateStr = self.selected_date
+        else:
+            consultDateStr = f"{self.selected_date}_a_{self.selected_end_date}"
+        outputFileName = "RegistrosSIO_" + str(consultDateStr) + ".xlsx"
         fdataList = formatList(dataList)
         [*_, df] = identifyColsToDisplay(
             fdataList, self.selected_layout, self.selected_cols
@@ -435,9 +439,7 @@ class ConsultGUI:
             print(f"Descargando registros a: {filePath}")
             try:
                 if not filePath.lower().endswith(".csv"):
-                    df.to_excel(
-                        filePath, index=False, sheet_name=str(self.selected_date)
-                    )
+                    df.to_excel(filePath, index=False, sheet_name=str(consultDateStr))
                 else:
                     df.to_csv(filePath, index=False, sep=",")
 
@@ -820,7 +822,14 @@ class ConsultGUI:
                             cancelButton = Button(
                                 window,
                                 text="Cancelar",
-                                command=window.destroy,
+                                command=lambda: [
+                                    self.load_custom_cols(
+                                        savedCols=savedCols,
+                                        infoLabel=infoLabel,
+                                        infoText=infoText,
+                                    ),
+                                    window.destroy(),
+                                ],
                             )
 
                             confirmButton.grid(
@@ -876,8 +885,8 @@ class ConsultGUI:
                                 else []
                             )
                         else:
-                            savedCols = None
-                        if savedCols is None or len(filteredUser) == 0:
+                            savedCols = []
+                        if len(filteredUser) == 0:
                             window = Toplevel()
                             window.title("Usuario no encontrado")
                             # window.geometry("600x400");
@@ -903,7 +912,14 @@ class ConsultGUI:
                             cancelButton = Button(
                                 window,
                                 text="Cancelar",
-                                command=window.destroy,
+                                command=lambda: [
+                                    self.load_custom_cols(
+                                        savedCols=savedCols,
+                                        infoLabel=infoLabel,
+                                        infoText=infoText,
+                                    ),
+                                    window.destroy(),
+                                ],
                             )
 
                             confirmButton.grid(
@@ -951,37 +967,118 @@ class ConsultGUI:
         infoText = kwargs.get("infoText", None)
         connectionError = kwargs.get("connectionError", 0)
         savedCols = kwargs.get("savedCols", [])
+        defaultCols = []
         if len(savedCols) == 0:
-            # TODO: Change fixed defaultCols for the custom columns loaded from a file or database.
-            defaultCols = [
-                "id",
-                "actionType",
-                "elementId",
-                "elementName",
-                "elementCompanyShortName",
-                "instructionTime",
-                "occurrenceTime",
-                "confirmationTime",
-                "causeStatus",
-                "consignmentId",
-                "causeChangeAvailability",
-                "newAvailability",
-                "elementCausingId",
-                "causeOperational",
-                "percentage",
-                "withPriorAuthorization",
-                "description",
-                "verificationNote",
-                "statusType",
-                "system",
-                "causeOrigin",
-                "causeDetailCno",
-                "validate",  # "validate" is used to highlight rows that are validated.
-            ]
+            if self.selected_db == "Atlas":
+                client = self.get_mongo_client(infoLabel, infoText)
+
+                if (
+                    isinstance(client, MongoClient)
+                    and self.db_name
+                    and self.db_default_cols_name
+                ):
+                    db = client[self.db_name]
+                    collection = db[self.db_default_cols_name]
+                    try:
+                        # Send a ping to confirm a successful connection
+                        ack = client.admin.command("ping")
+                        if ack["ok"] == 1:
+                            print(
+                                "Pinged your deployment. You successfully connected to MongoDB!"
+                            )
+                            # query = {
+                            #     ""
+                            #     + self.db_default_cols_name: self.db_default_cols_name
+                            # }
+                            query = {}  # Find all.
+                            defaultCols = collection.find_one(query)
+                            if defaultCols is None:
+                                defaultCols = []
+                            else:
+                                defaultCols = defaultCols.get(
+                                    self.db_default_cols_name, []
+                                )
+                                print(
+                                    "Columnas por defecto cargadas de Mongo: ",
+                                    defaultCols,
+                                )
+
+                    except PyMongoError as e:
+                        self.update_infolabel(
+                            infoLabel,
+                            infoText,
+                            "Error de Mongo al cargar las columnas por defecto.",
+                            "red",
+                        )
+                        print("Ha ocurrido error de Mongo: ", e)
+
+            if self.selected_db == "Servidor":
+
+                if self.db_server_url and self.db_name and self.db_collection_name:
+
+                    dbUrl = self.db_server_url
+                    dbFileName = self.db_name + ".json"
+                    collection = self.db_default_cols_name
+
+                    try:
+                        dbFilePath = dbUrl + dbFileName
+
+                        with open(dbFilePath, "r", encoding="utf-8") as f:
+                            data = json.load(f)
+                            # print("Data loaded from file: ", data)
+                            # print("user:", data[collection])
+                            defaultCols = data.get(collection, [])
+
+                        if len(defaultCols) > 0:
+                            print(
+                                "Columnas por defecto cargadas de servidor: ",
+                                defaultCols,
+                            )
+
+                    except OSError as e:
+                        self.update_infolabel(
+                            infoLabel,
+                            infoText,
+                            "Error al cargar las columnas por defecto del servidor.",
+                            "red",
+                        )
+                        print(
+                            "Ha ocurrido error al cargar las columnas por defecto del servidor: ",
+                            e,
+                        )
+
+            if not isinstance(defaultCols, list) or len(defaultCols) == 0:
+                defaultCols = [
+                    "id",
+                    "actionType",
+                    "elementId",
+                    "elementName",
+                    "elementCompanyShortName",
+                    "instructionTime",
+                    "occurrenceTime",
+                    "confirmationTime",
+                    "causeStatus",
+                    "consignmentId",
+                    "causeChangeAvailability",
+                    "newAvailability",
+                    "elementCausingId",
+                    "causeOperational",
+                    "percentage",
+                    "withPriorAuthorization",
+                    "description",
+                    "verificationNote",
+                    "statusType",
+                    "system",
+                    "causeOrigin",
+                    "causeDetailCno",
+                    "validate",  # "validate" is used to highlight rows that are validated.
+                ]
+                print("Se cargaron las columnas por defecto desde el código.")
+
             savedCols = defaultCols
             if connectionError == 0:
                 msg = (
-                    "Usuario sin columnas personalizadas guardadas."
+                    "Usuario sin columnas personalizadas guardadas. "
                     "Se cargaron columnas por defecto."
                 )
                 if isinstance(infoLabel, Label) and isinstance(infoText, StringVar):
@@ -1024,15 +1121,16 @@ class ConsultGUI:
         self.selected_end_date = date.today()
         self.col_var_dict = {}
         self.selected_layout = "completa"  # Default layout
-        self.selected_db = "Servidor"  # Default col database
+        self.selected_db = "Servidor"  # Default col database (Atlas / Servidor)
         if backend.env == "prod":
             self.db_server_url = os.getenv("URL_SERVER")
         else:
             self.db_server_url = str(Path(__file__).resolve().parent) + "//"
         self.db_name = os.getenv("MONGODB_DB_NAME")
         self.db_collection_name = os.getenv("MONGODB_COL_COLLECTION_NAME")
+        self.db_default_cols_name = os.getenv("MONGODB_DEFAULT_COL_COLLECTION_NAME")
         self.mongo_db_uri = os.getenv("MONGODB_URL")
-        print("Mongo DB URI: ", self.mongo_db_uri)
+        # print("Mongo DB URI: ", self.mongo_db_uri)
 
         wantedCols = [
             "id",
